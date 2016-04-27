@@ -1,0 +1,26 @@
+{
+  "name": "heroku-config",
+  "version": "0.0.1",
+  "description": "Push and pull environment variables from a Heroku instance",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xavdidtheshadow/heroku-config.git"
+  },
+  "keywords": [
+    "heroku-plugin"
+  ],
+  "author": "David Brownman <beamneocube@gmail.com> (http://davidbrownman.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xavdidtheshadow/heroku-config/issues"
+  },
+  "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
+  "dependencies": {
+    "heroku-cli-util": "^5.10.10",
+    "lodash.assign": "^4.0.8"
+  }
+}
