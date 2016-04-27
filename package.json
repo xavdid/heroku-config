@@ -4,7 +4,9 @@
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preversion": "npm test",
+    "postversion": "npm publish && git push && git push --tags"
   },
   "repository": {
     "type": "git",

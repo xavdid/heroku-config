@@ -4,7 +4,7 @@ const cli = require('heroku-cli-util')
 const co = require('co')
 const merge = require('../util/merge')
 
-function * pull (context, heroku) {
+function * push (context, heroku) {
   let config = yield heroku.get(`/apps/${context.app}/config-vars`)
   cli.debug(config)
   cli.debug(merge({a: 1}, {b: 2}, context.flags))
@@ -12,11 +12,11 @@ function * pull (context, heroku) {
 
 module.exports = {
   topic: 'config',
-  command: 'mypull',
-  description: 'pulls env variables from heroku',
-  help: 'this is helpful?',
+  command: 'mypush',
+  description: 'pushes local env variables to heroku',
+  help: 'this is more helpful?',
   needsApp: true,
   needsAuth: true,
-  run: cli.command(co.wrap(pull)),
+  run: cli.command(co.wrap(push)),
   flags: require('../util/flags')
 }
