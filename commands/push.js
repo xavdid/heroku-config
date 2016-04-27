@@ -6,8 +6,10 @@ const merge = require('../util/merge')
 
 function * push (context, heroku) {
   let config = yield heroku.get(`/apps/${context.app}/config-vars`)
+  let res = merge({}, config, context.flags)
   cli.debug(config)
-  cli.debug(merge({a: 1}, {b: 2}, context.flags))
+  cli.debug(res)
+// cli.debug(merge({a: 1}, {b: 2}, context.flags))
 }
 
 module.exports = {

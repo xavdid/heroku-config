@@ -4,7 +4,7 @@
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "./node_modules/tape/bin/tape test.js | tap-dot",
     "preversion": "npm test",
     "postversion": "npm publish && git push && git push --tags"
   },
@@ -24,5 +24,9 @@
   "dependencies": {
     "heroku-cli-util": "^5.10.10",
     "lodash.assign": "^4.0.8"
+  },
+  "devDependencies": {
+    "tap-dot": "^1.0.5",
+    "tape": "^4.5.1"
   }
 }

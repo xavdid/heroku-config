@@ -4,7 +4,11 @@
 const assign = require('lodash.assign')
 
 module.exports = function (src, dest, flags) {
-  console.log(`interactive is ${flags.interactive}`)
+  console.log(`overwrite is ${flags.overwrite}`)
   // check interactive and overwrite
-  return assign({}, src, dest)
+  if (flags.overwrite) {
+    return assign({}, src, dest)
+  } else {
+    return assign({}, dest, src)
+  }
 }
