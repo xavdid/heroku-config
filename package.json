@@ -23,7 +23,8 @@
   "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
   "dependencies": {
     "heroku-cli-util": "^5.10.10",
-    "lodash.assign": "^4.0.8"
+    "lodash.assign": "^4.0.8",
+    "mz": "^2.4.0"
   },
   "devDependencies": {
     "tap-spec": "^4.1.1",

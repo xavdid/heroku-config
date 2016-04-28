@@ -6,11 +6,14 @@ const merge = require('../util/merge')
 const file = require('../util/file')
 
 function * pull (context, heroku) {
-  let remote = yield heroku.get(`/apps/${context.app}/config-vars`)
   let fname = context.flags.env // this gets defaulted in read
-  let local = file.read(fname)
+  let config = yield {
+    remote: heroku.get(`/apps/${context.app}/config-vars`),
+    local: file.read(fname)
+  }
+  cli.debug(config)
 
-  file.write(merge(remote, local, context.flags), fname)
+  file.write(merge(config.remote, config.local, context.flags), fname)
 }
 
 module.exports = {

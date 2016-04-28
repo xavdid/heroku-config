@@ -1,8 +1,7 @@
 // interface for reading/writing to .env file
 'use strict'
 
-const fs = require('fs')
-const co = require('co')
+const fs = require('mz/fs')
 
 function obj_to_file_format (obj) {
   let res = ''
@@ -28,20 +27,22 @@ function obj_from_file_format (s) {
       res[key] = value
     }
   }
+  console.log(s, res)
   return res
 }
 
 module.exports = {
   read: (fname) => {
     fname = fname || '.env'
-    try {
-      // could make this async with generator?
-      let data = fs.readFileSync(fname, 'utf-8')
-      return obj_from_file_format(data)
-    } catch (e) {
-      console.warn(`WARN - Unable to read from ${fname}`)
-      return {}
-    }
+    // could make this async with generator?
+    // let data = fs.readFileSync(fname, 'utf-8')
+    // console.log(`reading from ${fname}`)
+    return fs.readFile(fname, 'utf-8').then((data) => {
+      return Promise.resolve(obj_from_file_format(data))
+    }).catch(() => {
+      console.warn(`CATCH - Unable to read from ${fname}`)
+      return Promise.resolve({err: 1})
+    })
   },
   write: (obj, fname) => {
     fname = fname || '.env'
