@@ -2,6 +2,7 @@
 'use strict'
 
 const fs = require('fs')
+const co = require('co')
 
 function obj_to_file_format (obj) {
   let res = ''
@@ -32,19 +33,18 @@ function obj_from_file_format (s) {
 
 module.exports = {
   read: (fname) => {
-    fs.readFile(fname, (err, data) => {
-      if (err) {
-        console.warn(`WARN - Unable to read from ${fname}`)
-        return {}
-      } else {
-        if (data) {
-          data = data.toString()
-        }
-        return obj_from_file_format(data)
-      }
-    })
+    fname = fname || '.env'
+    try {
+      // could make this async with generator?
+      let data = fs.readFileSync(fname, 'utf-8')
+      return obj_from_file_format(data)
+    } catch (e) {
+      console.warn(`WARN - Unable to read from ${fname}`)
+      return {}
+    }
   },
   write: (obj, fname) => {
+    fname = fname || '.env'
     fs.writeFile(fname, obj_to_file_format(obj).toString(), (err) => {
       if (err) {
         console.error(`Error writing to file ${fname}: ${err.message}`)

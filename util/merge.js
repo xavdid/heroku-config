@@ -3,7 +3,7 @@
 
 const assign = require('lodash.assign')
 
-module.exports = function (sub, dom, flags) {
+module.exports = (sub, dom, flags) => {
   // console.log(`overwrite is ${flags.overwrite}`)
   // check interactive and overwrite
 

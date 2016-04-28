@@ -3,6 +3,7 @@
 const test = require('tape')
 
 const merge = require('./util/merge')
+const file = require('./util/file')
 
 let remote = {
   NODE_ENV: 'production',
@@ -31,11 +32,17 @@ let local_win = {
 }
 
 test('Merging', (t) => {
-  t.deepEqual(remote_win, merge(local, remote, {}), 'Expect remote to overwrite local')
-  t.deepEqual(local_win, merge(remote, local, {}), 'Expect local to overwrite remote')
+  t.deepEqual(remote_win, merge(local, remote, {}), 'Remote should overwrite local')
+  t.deepEqual(local_win, merge(remote, local, {}), 'Local should overwrite remote')
 
-  t.deepEqual(remote_win, merge(remote, local, {overwrite: true}), 'Expect remote to overwrite local w/ overwrite')
-  t.deepEqual(local_win, merge(local, remote, {overwrite: true}), 'Expect local to overwrite remote w/overwrite')
+  t.deepEqual(remote_win, merge(remote, local, {overwrite: true}), 'Remote should overwrite local w/ overwrite')
+  t.deepEqual(local_win, merge(local, remote, {overwrite: true}), 'Local should overwrite remote w/overwrite')
+
+  t.end()
+})
+
+test('Reading', (t) => {
+  t.deepEqual(file.read('asdf'), {}, 'Should return empty object from non-existant file')
 
   t.end()
 })
