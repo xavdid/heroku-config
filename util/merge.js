@@ -3,12 +3,14 @@
 
 const assign = require('lodash.assign')
 
-module.exports = function (src, dest, flags) {
-  console.log(`overwrite is ${flags.overwrite}`)
+module.exports = function (sub, dom, flags) {
+  // console.log(`overwrite is ${flags.overwrite}`)
   // check interactive and overwrite
+
+  // blank object is so sources aren't modified
   if (flags.overwrite) {
-    return assign({}, src, dest)
+    return assign({}, dom, sub)
   } else {
-    return assign({}, dest, src)
+    return assign({}, sub, dom)
   }
 }

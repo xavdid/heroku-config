@@ -1,0 +1,15 @@
+NAME=david
+SQ_NAME='david'
+DQ_NAME="david"
+
+RAND_ID=6be-42c0
+SQ_RAND_ID='6be4-2c0'
+DQ_RAND_ID="6be4-2c0"
+
+MONGO_URL=mongodb://un:pass@ds08.mongolab.com:53428/kinect
+SQ_MONGO_URL='mongodb://un:pass@ds08.mongolab.com:53428/kinect'
+DQ_MONGO_URL="mongodb://un:pass@ds08.mongolab.com:53428/kinect"
+
+WEIRD_PASS=9v\$tQnv&7crj
+SQ_WEIRD_PASS='9v\$tQnv&7crj'
+DQ_WEIRD_PASS="9v\$tQnv&7crj"

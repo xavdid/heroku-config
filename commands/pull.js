@@ -3,11 +3,12 @@
 const cli = require('heroku-cli-util')
 const co = require('co')
 const merge = require('../util/merge')
+const file = require('../util/file')
 
 function * pull (context, heroku) {
   let config = yield heroku.get(`/apps/${context.app}/config-vars`)
-  cli.debug(config)
-  cli.debug(merge({a: 1}, {b: 2}, context.flags))
+  let fname = context.flags.env || '.env'
+  file.write(merge(config, file.read(fname), context.flags), fname)
 }
 
 module.exports = {

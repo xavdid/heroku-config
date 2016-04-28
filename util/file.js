@@ -1,11 +1,13 @@
 // interface for reading/writing to .env file
+'use strict'
 
 const fs = require('fs')
 
 function obj_to_file_format (obj) {
   let res = ''
   for (let key in obj) {
-    res += (`${key}="${obj[key]}"`)
+    // standard removes the \n char in the ` string?
+    res += (`${key}="${obj[key]}"` + '\n')
   }
   return res
 }
@@ -32,16 +34,18 @@ module.exports = {
   read: (fname) => {
     fs.readFile(fname, (err, data) => {
       if (err) {
-        console.error(`Unable to read from ${fname}`)
+        console.warn(`WARN - Unable to read from ${fname}`)
+        return {}
       } else {
+        if (data) {
+          data = data.toString()
+        }
         return obj_from_file_format(data)
       }
     })
   },
-  write: (fname, obj) => {
-    let res = {}
-
-    fs.writeFile(fname, obj_to_file_format(res), (err) => {
+  write: (obj, fname) => {
+    fs.writeFile(fname, obj_to_file_format(obj).toString(), (err) => {
       if (err) {
         console.error(`Error writing to file ${fname}: ${err.message}`)
       } else {

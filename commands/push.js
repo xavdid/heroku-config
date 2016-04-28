@@ -3,6 +3,7 @@
 const cli = require('heroku-cli-util')
 const co = require('co')
 const merge = require('../util/merge')
+const file = require('../util/file')
 
 function * push (context, heroku) {
   let config = yield heroku.get(`/apps/${context.app}/config-vars`)
