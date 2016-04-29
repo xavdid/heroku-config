@@ -11,9 +11,9 @@ function * pull (context, heroku) {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
     local: file.read(fname)
   }
-  cli.debug(config)
-
-  file.write(merge(config.remote, config.local, context.flags), fname)
+  // cli.debug(config)
+  let res = merge(config.remote, config.local, context.flags)
+  file.write(res, fname)
 }
 
 module.exports = {
