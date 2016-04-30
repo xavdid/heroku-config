@@ -27,6 +27,7 @@
     "mz": "^2.4.0"
   },
   "devDependencies": {
+    "rewire": "^2.5.1",
     "tap-spec": "^4.1.1",
     "tape": "^4.5.1"
   }

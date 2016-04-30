@@ -1,8 +1,7 @@
 'use strict'
 
 exports.topic = {
-  name: 'config',
-  description: 'this gets overwritten anyway?'
+  name: 'config'
 }
 
 exports.commands = [

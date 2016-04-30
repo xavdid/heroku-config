@@ -3,9 +3,10 @@
 
 const fs = require('mz/fs')
 const DEFAULT_FNAME = '.env'
+const header = '# this file was creatd automatically by heroku-config\n\n'
 
 function obj_to_file_format (obj) {
-  let res = ''
+  let res = `${header}`
   for (let key in obj) {
     // there's a bug including newlines in template string
     res += (`${key}="${obj[key]}"` + '\n')
@@ -16,7 +17,6 @@ function obj_to_file_format (obj) {
 function obj_from_file_format (s) {
   let res = {}
   let data = s.split('\n')
-  console.log(data)
   data.forEach(function (v) {
     let config = v.match(/^([A-Za-z0-9_]+)="?(.*)$/)
     if (config) {
