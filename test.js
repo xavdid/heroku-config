@@ -68,6 +68,7 @@ test('Transforming', (t) => {
     sample_obj,
     'Should dncode files correctly')
 
+  // this could get weird since object key order isn't garunteed, but it's probably ifne
   t.deepEqual(file.__get__('obj_to_file_format')(sample_obj),
     clean_sample_file,
     'Should decodes file correctly')
