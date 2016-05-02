@@ -2,6 +2,8 @@
 'use strict'
 
 const fs = require('mz/fs')
+const cli = require('heroku-cli-util')
+
 const DEFAULT_FNAME = '.env'
 const header = '# this file was creatd automatically by heroku-config\n\n'
 
@@ -23,7 +25,7 @@ function obj_from_file_format (s) {
       let key = config[1]
       // strip off trailing " if it's there
       let value = config[2].replace(/"$/, '')
-      if (res[key]) { console.warn(`WARN - ${key} is in env file twice`) }
+      if (res[key]) { cli.warning(`WARN - ${key} is in env file twice`) }
       res[key] = value
     }
   })
@@ -37,17 +39,19 @@ module.exports = {
     return fs.readFile(fname, 'utf-8').then((data) => {
       return Promise.resolve(obj_from_file_format(data))
     }).catch(() => {
-      // console.warn(`WARN - Unable to read from ${fname}`)
+      // cli.warning(`WARN - Unable to read from ${fname}`)
       // if it doesn't exist or we can't read, just start from scratch
       return Promise.resolve({})
     })
   },
   write: (obj, fname) => {
     fname = fname || DEFAULT_FNAME
-    fs.writeFile(fname, obj_to_file_format(obj)).then(() => {
+    return fs.writeFile(fname, obj_to_file_format(obj)).then(() => {
       console.log(`Successfully wrote config to ${fname}!`)
     }).catch((err) => {
-      console.error(`Error writing to file ${fname}: ${err.message}`)
+      cli.error(`Error writing to file ${fname} (${err.message})`)
+    // dunno if i actually need to throw this
+    // throw new Error()
     })
   }
 }

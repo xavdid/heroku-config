@@ -1,9 +1,14 @@
 'use strict'
-/* globals commands describe beforeEach it */
+/* globals describe before beforeEach it after afterEach */
 
-const expect = require('chai').expect
+const chai = require('chai')
+chai.use(require('chai-as-promised'))
+const expect = chai.expect
+
 const nock = require('nock')
-const mock_fs = require('mock-fs')
+nock.disableNetConnect()
+
+const mock = require('mock-fs')
 const rewire = require('rewire')
 
 const merge = require('./util/merge')
@@ -18,9 +23,6 @@ function fetch_cmd (name) {
 }
 
 function setup () {
-  // no actual requets
-  nock.disableNetConnect()
-  cli.mockConsole()
   cli.raiseErrors = true
 }
 
@@ -28,7 +30,8 @@ function default_fs () {
   // this is so I can setup without affecting other tests
   return {
     '.env': local_file,
-    'other.txt': local_file
+    'other.txt': local_file,
+    'dnt': mock.file({mode: '000'})
   }
 }
 
@@ -85,28 +88,59 @@ describe('Merging', () => {
   })
 })
 
-// describe('Reading', (t) => {
-//   it.deepEqual(file.read('asdf'),
-//     {},
-//     'Should return empty object from non-existant file')
+describe('Reading', () => {
+  before(() => {
+    mock(default_fs())
+  })
 
-//   it.deepEqual(file.read('.env'),
-//     local,
-//     'Should read a local file')
+  it('should return empty object from non-existant file', () => {
+    expect(file.read('asdf')).to.eventually.deep.equal({})
+  })
 
-// })
+  it('should read a local file', () => {
+    // BROKEN?!
+    expect(file.read('.env')).to.eventually.deep.equal(remote)
+  })
 
-// describe('Transforming', (t) => {
-//   it.deepEqual(file.__get__('obj_from_file_format')(sample_file),
-//     sample_obj,
-//     'Should dncode files correctly')
+  after(() => {
+    mock.restore()
+  })
+})
 
-//   // this could get weird since object key order isn't garunteed, but it's probably ifne
-//   it.deepEqual(file.__get__('obj_to_file_format')(sample_obj),
-//     clean_sample_file,
-//     'Should decodes file correctly')
+describe('Writing', () => {
+  beforeEach(() => {
+    cli.mockConsole()
+    mock(default_fs())
+  })
 
-// })
+  it('should fail to read from a file it lacks permissions for', () => {
+    return file.write({}, 'dnt').then(() => {
+      expect(cli.stderr).to.contain('Error writing to file')
+    })
+
+  // can't get throw working :/
+  // expect(function () {
+  //   return file.write({}, 'dnt').then().catch(() => {
+  //     throw new Error()
+  //   })
+  // }).to.throw(Error)
+  })
+
+  afterEach(() => {
+    mock.restore()
+  })
+})
+
+describe('Transforming', () => {
+  it('Should dncode files correctly', () => {
+    expect(file.__get__('obj_from_file_format')(sample_file)).to.deep.equal(sample_obj)
+  })
+
+  // this could get weird since object key order isn't garunteed, but it's probably ifne
+  it('Should decodes file correctly', () => {
+    expect(file.__get__('obj_to_file_format')(sample_obj)).to.equal(clean_sample_file)
+  })
+})
 
 // describe('Pushing', {skip: true}, (t) => {
 //   let api_get = nock('https://api.heroku.com:443')
@@ -121,18 +155,23 @@ describe('Merging', () => {
 // })
 
 describe('Pulling', () => {
-  let fetch_configs = nock('https://api.heroku.com:443')
-    .get('/apps/test/config-vars')
-    .reply(200, remote)
-  mock_fs(default_fs())
+  beforeEach(() => {
+    cli.mockConsole()
+    mock(default_fs())
+  })
 
   it('should correctly pull configs', () => {
-    let cmd = fetch_cmd('mypull')
-    cmd.run({flags: {}, app: 'test'}).then((res) => {
-      console.log(res)
+    nock('https://api.heroku.com:443')
+      .get('/apps/test/config-vars')
+      .reply(200, remote)
 
+    let cmd = fetch_cmd('mypull')
+    return cmd.run({flags: {}, app: 'test'}).then(() => {
       expect(true).to.equal(true)
-      fetch_configs.done()
     })
+  })
+
+  afterEach(() => {
+    mock.restore()
   })
 })
