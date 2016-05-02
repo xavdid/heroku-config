@@ -13,7 +13,7 @@ function * pull (context, heroku) {
   }
   // cli.debug(config)
   let res = merge(config.remote, config.local, context.flags)
-  file.write(res, fname)
+  yield file.write(res, fname)
 }
 
 module.exports = {

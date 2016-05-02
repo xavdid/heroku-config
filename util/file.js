@@ -9,10 +9,13 @@ const header = '# this file was creatd automatically by heroku-config\n\n'
 
 function obj_to_file_format (obj) {
   let res = `${header}`
-  for (let key in obj) {
+  // always write keys alphabetically
+  // makes file writing deterministic
+  let keys = Object.keys(obj).sort()
+  keys.forEach((key) => {
     // there's a bug including newlines in template string
     res += (`${key}="${obj[key]}"` + '\n')
-  }
+  })
   return res
 }
 
@@ -47,9 +50,10 @@ module.exports = {
   write: (obj, fname) => {
     fname = fname || DEFAULT_FNAME
     return fs.writeFile(fname, obj_to_file_format(obj)).then(() => {
-      console.log(`Successfully wrote config to ${fname}!`)
+      cli.log(`Successfully wrote config to ${fname}!`)
     }).catch((err) => {
       cli.error(`Error writing to file ${fname} (${err.message})`)
+    // return Promise.reject()
     // dunno if i actually need to throw this
     // throw new Error()
     })

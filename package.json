@@ -4,6 +4,7 @@
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
+    "test": "mocha test.js && standard",
     "preversion": "npm test",
     "postversion": "npm publish && git push && git push --tags"
   },
@@ -31,6 +32,7 @@
     "mocha": "^2.4.5",
     "mock-fs": "^3.9.0",
     "nock": "^8.0.0",
-    "rewire": "^2.5.1"
+    "rewire": "^2.5.1",
+    "standard": "^6.0.8"
   }
 }

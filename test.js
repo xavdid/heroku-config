@@ -1,5 +1,5 @@
 'use strict'
-/* globals describe before beforeEach it after afterEach */
+/* globals describe beforeEach it afterEach */
 
 const chai = require('chai')
 chai.use(require('chai-as-promised'))
@@ -10,12 +10,17 @@ nock.disableNetConnect()
 
 const mock = require('mock-fs')
 const rewire = require('rewire')
+// const fs = require('fs')
 
-const merge = require('./util/merge')
-const file = rewire('./util/file')
-
+// heroku stuff
 const cli = require('heroku-cli-util')
 const commands = require('./index').commands
+
+// things I'm testing
+const merge = require('./util/merge')
+const file = rewire('./util/file')
+const header = file.__get__('header')
+const fs = require('fs')
 
 // HELPERS
 function fetch_cmd (name) {
@@ -29,80 +34,76 @@ function setup () {
 function default_fs () {
   // this is so I can setup without affecting other tests
   return {
-    '.env': local_file,
-    'other.txt': local_file,
-    'dnt': mock.file({mode: '000'})
+    '.env': fixtures.local_file,
+    'other.txt': fixtures.local_file,
+    'dnt': mock.file({mode: '000'}),
+    totally: {}
   }
 }
 
 // FIXTURES
-let remote = {
-  NODE_ENV: 'production',
-  NAME: 'david',
-  SOURCE: 'remote'
+let fixtures = {
+  remote_obj: {
+    NODE_ENV: 'production',
+    NAME: 'david',
+    SOURCE: 'remote'
+  }, local_obj: {
+    NODE_ENV: 'test',
+    SOURCE: 'local',
+    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
+  }, remote_win_obj: {
+    NODE_ENV: 'production',
+    SOURCE: 'remote',
+    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
+    NAME: 'david'
+  }, local_win_obj: {
+    NODE_ENV: 'test',
+    SOURCE: 'local',
+    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
+    NAME: 'david'
+  },
+  local_file: '#comment\nNODE_ENV=test\nSOURCE=local\n\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
+  merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
+  // test both quote styles
+  sample_file: header + 'NAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
+  clean_sample_file: header + 'CITY="boulder"\nNAME="david"\n',
+  sample_obj: { NAME: 'david', CITY: 'boulder' }
 }
-
-let local = {
-  NODE_ENV: 'test',
-  SOURCE: 'local',
-  DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
-}
-let local_file = '#comment\nNODE_ENV=test\nSOURCE=local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n'
-
-let remote_win = {
-  NODE_ENV: 'production',
-  SOURCE: 'remote',
-  DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
-  NAME: 'david'
-}
-
-let local_win = {
-  NODE_ENV: 'test',
-  SOURCE: 'local',
-  DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
-  NAME: 'david'
-}
-
-// test both quoted values and non
-let sample_file = file.__get__('header') + 'NAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n'
-let clean_sample_file = file.__get__('header') + 'NAME="david"\nCITY="boulder"\n'
-let sample_obj = {NAME: 'david', CITY: 'boulder'}
 
 // TESTS
 setup()
 
 describe('Merging', () => {
   it('should overwrite local with remote', () => {
-    expect(merge(local, remote, {})).to.deep.equal(remote_win)
+    expect(merge(fixtures.local_obj, fixtures.remote_obj, {})).to.deep.equal(fixtures.remote_win_obj)
   })
   it('should overwrite remote with local', () => {
-    expect(merge(remote, local, {})).to.deep.equal(local_win)
+    expect(merge(fixtures.remote_obj, fixtures.local_obj, {})).to.deep.equal(fixtures.local_win_obj)
   })
 
   it('should overwrite local with remote w/override', () => {
-    expect(merge(remote, local, {overwrite: true})).to.deep.equal(remote_win)
+    expect(merge(fixtures.remote_obj, fixtures.local_obj, {overwrite: true})).to.deep.equal(fixtures.remote_win_obj)
   })
 
   it('should overwrite remote with local w/override', () => {
-    expect(merge(local, remote, {overwrite: true})).to.deep.equal(local_win)
+    expect(merge(fixtures.local_obj, fixtures.remote_obj, {overwrite: true})).to.deep.equal(fixtures.local_win_obj)
   })
 })
 
 describe('Reading', () => {
-  before(() => {
+  beforeEach(() => {
     mock(default_fs())
   })
 
   it('should return empty object from non-existant file', () => {
-    expect(file.read('asdf')).to.eventually.deep.equal({})
+    return expect(file.read('asdf')).to.eventually.deep.equal({})
   })
 
   it('should read a local file', () => {
-    // BROKEN?!
-    expect(file.read('.env')).to.eventually.deep.equal(remote)
+    return expect(file.read('.env')).to.eventually.deep.equal(fixtures.local_obj)
   })
 
-  after(() => {
+  afterEach(() => {
     mock.restore()
   })
 })
@@ -115,16 +116,15 @@ describe('Writing', () => {
 
   it('should fail to read from a file it lacks permissions for', () => {
     return file.write({}, 'dnt').then(() => {
-      expect(cli.stderr).to.contain('Error writing to file')
+      expect(cli.stderr).to.contain('EACCES, permission denied')
     })
-
-  // can't get throw working :/
-  // expect(function () {
-  //   return file.write({}, 'dnt').then().catch(() => {
-  //     throw new Error()
-  //   })
-  // }).to.throw(Error)
   })
+
+  // it('should successfully write a file', () => {
+  //   return file.write(fixtures.local_obj).then(() => {
+  //     let res = require('fs').readFileSync('.env')
+  //   })
+  // })
 
   afterEach(() => {
     mock.restore()
@@ -132,13 +132,12 @@ describe('Writing', () => {
 })
 
 describe('Transforming', () => {
-  it('Should dncode files correctly', () => {
-    expect(file.__get__('obj_from_file_format')(sample_file)).to.deep.equal(sample_obj)
+  it('should decode files correctly', () => {
+    expect(file.__get__('obj_from_file_format')(fixtures.sample_file)).to.deep.equal(fixtures.sample_obj)
   })
 
-  // this could get weird since object key order isn't garunteed, but it's probably ifne
-  it('Should decodes file correctly', () => {
-    expect(file.__get__('obj_to_file_format')(sample_obj)).to.equal(clean_sample_file)
+  it('should encode file correctly', () => {
+    expect(file.__get__('obj_to_file_format')(fixtures.sample_obj)).to.equal(fixtures.clean_sample_file)
   })
 })
 
@@ -149,7 +148,7 @@ describe('Transforming', () => {
 
 //   let api_patch = nock('https://api.heroku.com:443')
 //     .patch('/apps/test/config-vars')
-//     .reply(200, remote_win)
+//     .reply(200, remote_win_obj)
 
 //   let cmd = fetch_cmd('mypush')
 // })
@@ -163,11 +162,12 @@ describe('Pulling', () => {
   it('should correctly pull configs', () => {
     nock('https://api.heroku.com:443')
       .get('/apps/test/config-vars')
-      .reply(200, remote)
+      .reply(200, fixtures.remote_obj)
 
     let cmd = fetch_cmd('mypull')
     return cmd.run({flags: {}, app: 'test'}).then(() => {
-      expect(true).to.equal(true)
+      let res = fs.readFileSync('.env', 'utf-8')
+      expect(res).to.include(fixtures.merged_local_file)
     })
   })
 
