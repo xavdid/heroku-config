@@ -1,6 +1,6 @@
 # heroku-config 
 
-[![npm](https://img.shields.io/npm/v/heroku-config.svg?maxAge=2592000)](https://www.npmjs.com/package/heroku-config) [![David](https://img.shields.io/david/xavdidtheshadow/heroku-config.svg?maxAge=2592000)](https://david-dm.org/xavdidtheshadow/heroku-config)
+[![npm](https://img.shields.io/npm/v/heroku-config.svg?maxAge=2592000)](https://www.npmjs.com/package/heroku-config) [![Travis](https://img.shields.io/travis/Xavdidtheshadow/heroku-config.svg?maxAge=2592000)](https://travis-ci.org/Xavdidtheshadow/heroku-config) [![David](https://img.shields.io/david/xavdidtheshadow/heroku-config.svg?maxAge=2592000)](https://david-dm.org/xavdidtheshadow/heroku-config)
 
 
 Push and pull your [Heroku](https://www.heroku.com) configs to your local environment.
