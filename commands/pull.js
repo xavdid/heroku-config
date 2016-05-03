@@ -19,9 +19,9 @@ function * pull (context, heroku) {
 
 module.exports = {
   topic: 'config',
-  command: 'mypull',
+  command: 'pull',
   description: 'pulls env variables from heroku',
-  help: 'this is helpful?',
+  help: 'Write remote config vars into file FILE, favoring existing local configs in case of collision',
   needsApp: true,
   needsAuth: true,
   run: cli.command(co.wrap(pull)),

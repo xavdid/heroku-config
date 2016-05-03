@@ -162,7 +162,7 @@ describe('Pushing', () => {
       .get('/apps/test/config-vars')
       .reply(200, fixtures.remote_win_obj)
 
-    let cmd = fetchCMD('mypush')
+    let cmd = fetchCMD('push')
     let fname = 'other.txt'
     return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
       return cli.got('https://api.heroku.com:443/apps/test/config-vars')
@@ -187,7 +187,7 @@ describe('Pulling', () => {
       .get('/apps/test/config-vars')
       .reply(200, fixtures.remote_obj)
 
-    let cmd = fetchCMD('mypull')
+    let cmd = fetchCMD('pull')
     let fname = 'other.txt'
     return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
       let res = fs.readFileSync(fname, 'utf-8')
