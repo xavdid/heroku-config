@@ -1,15 +1,16 @@
 // command line args
 
 module.exports = [{
-  name: 'env',
-  char: 'e',
+  name: 'file',
+  char: 'f',
   hasValue: true,
   description: 'specify target filename'
 }, {
-  name: 'interactive',
-  char: 'i',
-  description: 'prompt whether to overwrite each config var'
-}, {
+  // i'll do this later
+  //   name: 'interactive',
+  //   char: 'i',
+  //   description: 'prompt whether to overwrite each config var'
+  // }, {
   name: 'overwrite',
   char: 'o',
   description: 'overwrite existing config vars'

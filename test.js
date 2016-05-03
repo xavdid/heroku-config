@@ -23,7 +23,7 @@ const header = file.__get__('header')
 const fs = require('fs')
 
 // HELPERS
-function fetch_cmd (name) {
+function fetchCMD (name) {
   return commands.find((c) => c.command === name)
 }
 
@@ -31,13 +31,12 @@ function setup () {
   cli.raiseErrors = true
 }
 
-function default_fs () {
+function defaultFS () {
   // this is so I can setup without affecting other tests
   return {
     '.env': fixtures.local_file,
     'other.txt': fixtures.local_file,
-    'dnt': mock.file({mode: '000'}),
-    totally: {}
+    'dnt': mock.file({mode: '000'})
   }
 }
 
@@ -62,12 +61,14 @@ let fixtures = {
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
     NAME: 'david'
   },
+
   local_file: '#comment\nNODE_ENV=test\nSOURCE=local\n\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
+
   // test both quote styles
-  sample_file: header + 'NAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
-  clean_sample_file: header + 'CITY="boulder"\nNAME="david"\n',
-  sample_obj: { NAME: 'david', CITY: 'boulder' }
+  sample_file: header + 'PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
+  clean_sample_file: header + 'CITY="boulder"\nNAME="david"\nPIZZA="Abo\'s"\n',
+  sample_obj: { NAME: 'david', CITY: 'boulder', PIZZA: "Abo's" }
 }
 
 // TESTS
@@ -92,7 +93,7 @@ describe('Merging', () => {
 
 describe('Reading', () => {
   beforeEach(() => {
-    mock(default_fs())
+    mock(defaultFS())
   })
 
   it('should return empty object from non-existant file', () => {
@@ -111,20 +112,19 @@ describe('Reading', () => {
 describe('Writing', () => {
   beforeEach(() => {
     cli.mockConsole()
-    mock(default_fs())
+    mock(defaultFS())
   })
 
   it('should fail to read from a file it lacks permissions for', () => {
-    return file.write({}, 'dnt').then(() => {
-      expect(cli.stderr).to.contain('EACCES, permission denied')
-    })
+    return expect(file.write({}, 'dnt')).to.be.rejectedWith(Error)
   })
 
-  // it('should successfully write a file', () => {
-  //   return file.write(fixtures.local_obj).then(() => {
-  //     let res = require('fs').readFileSync('.env')
-  //   })
-  // })
+  it('should successfully write a file', () => {
+    return file.write(fixtures.sample_obj).then(() => {
+      let res = fs.readFileSync('.env', 'utf-8')
+      expect(res).to.equal(fixtures.clean_sample_file)
+    })
+  })
 
   afterEach(() => {
     mock.restore()
@@ -133,30 +133,53 @@ describe('Writing', () => {
 
 describe('Transforming', () => {
   it('should decode files correctly', () => {
-    expect(file.__get__('obj_from_file_format')(fixtures.sample_file)).to.deep.equal(fixtures.sample_obj)
+    expect(file.__get__('objFromFileFormat')(fixtures.sample_file)).to.deep.equal(fixtures.sample_obj)
   })
 
   it('should encode file correctly', () => {
-    expect(file.__get__('obj_to_file_format')(fixtures.sample_obj)).to.equal(fixtures.clean_sample_file)
+    expect(file.__get__('objToFileFormat')(fixtures.sample_obj)).to.equal(fixtures.clean_sample_file)
   })
 })
 
-// describe('Pushing', {skip: true}, (t) => {
-//   let api_get = nock('https://api.heroku.com:443')
-//     .get('/apps/test/config-vars')
-//     .reply(200, remote)
+describe('Pushing', () => {
+  beforeEach(() => {
+    cli.mockConsole()
+    mock(defaultFS())
+  })
 
-//   let api_patch = nock('https://api.heroku.com:443')
-//     .patch('/apps/test/config-vars')
-//     .reply(200, remote_win_obj)
+  it('should correctly push configs w/ flags', () => {
+    nock('https://api.heroku.com:443')
+      .get('/apps/test/config-vars')
+      .reply(200, fixtures.remote_obj)
 
-//   let cmd = fetch_cmd('mypush')
-// })
+    // this will fail if we don't pass the correct body, as intended
+    nock('https://api.heroku.com:443')
+      .patch('/apps/test/config-vars', fixtures.remote_win_obj)
+      .reply(200, fixtures.remote_win_obj)
+
+    // fetch the updated value
+    nock('https://api.heroku.com:443')
+      .get('/apps/test/config-vars')
+      .reply(200, fixtures.remote_win_obj)
+
+    let cmd = fetchCMD('mypush')
+    let fname = 'other.txt'
+    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+      return cli.got('https://api.heroku.com:443/apps/test/config-vars')
+    }).then((res) => {
+      expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
+    })
+  })
+
+  afterEach(() => {
+    mock.restore()
+  })
+})
 
 describe('Pulling', () => {
   beforeEach(() => {
     cli.mockConsole()
-    mock(default_fs())
+    mock(defaultFS())
   })
 
   it('should correctly pull configs', () => {
@@ -164,9 +187,10 @@ describe('Pulling', () => {
       .get('/apps/test/config-vars')
       .reply(200, fixtures.remote_obj)
 
-    let cmd = fetch_cmd('mypull')
-    return cmd.run({flags: {}, app: 'test'}).then(() => {
-      let res = fs.readFileSync('.env', 'utf-8')
+    let cmd = fetchCMD('mypull')
+    let fname = 'other.txt'
+    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+      let res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.include(fixtures.merged_local_file)
     })
   })

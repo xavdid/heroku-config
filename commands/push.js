@@ -6,18 +6,14 @@ const merge = require('../util/merge')
 const file = require('../util/file')
 
 function * pull (context, heroku) {
-  let fname = context.flags.env // this gets defaulted in read
+  let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
     local: file.read(fname)
   }
   // cli.debug(config)
   let res = merge(config.local, config.remote, context.flags)
-  try {
-    yield heroku.patch(`/apps/${context.app}/config-vars`, res)
-  } catch (e) {
-    cli.error(`There was a problem saving to heroku: ${e.message}`)
-  }
+  yield heroku.patch(`/apps/${context.app}/config-vars`, res)
   cli.log('Successuflly wrote settings to heroku!')
 }
 

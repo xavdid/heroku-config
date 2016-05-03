@@ -7,7 +7,7 @@ const cli = require('heroku-cli-util')
 const DEFAULT_FNAME = '.env'
 const header = '# this file was creatd automatically by heroku-config\n\n'
 
-function obj_to_file_format (obj) {
+function objToFileFormat (obj) {
   let res = `${header}`
   // always write keys alphabetically
   // makes file writing deterministic
@@ -19,7 +19,7 @@ function obj_to_file_format (obj) {
   return res
 }
 
-function obj_from_file_format (s) {
+function objFromFileFormat (s) {
   let res = {}
   let data = s.split('\n')
   data.forEach(function (v) {
@@ -40,7 +40,7 @@ module.exports = {
     fname = fname || DEFAULT_FNAME
     // let data = fs.readFileSync(fname, 'utf-8')
     return fs.readFile(fname, 'utf-8').then((data) => {
-      return Promise.resolve(obj_from_file_format(data))
+      return Promise.resolve(objFromFileFormat(data))
     }).catch(() => {
       // cli.warning(`WARN - Unable to read from ${fname}`)
       // if it doesn't exist or we can't read, just start from scratch
@@ -49,13 +49,10 @@ module.exports = {
   },
   write: (obj, fname) => {
     fname = fname || DEFAULT_FNAME
-    return fs.writeFile(fname, obj_to_file_format(obj)).then(() => {
+    return fs.writeFile(fname, objToFileFormat(obj)).then(() => {
       cli.log(`Successfully wrote config to ${fname}!`)
     }).catch((err) => {
-      cli.error(`Error writing to file ${fname} (${err.message})`)
-    // return Promise.reject()
-    // dunno if i actually need to throw this
-    // throw new Error()
+      throw new Error(`Error writing to file ${fname} (${err.message})`)
     })
   }
 }
