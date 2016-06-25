@@ -14,7 +14,7 @@ function * push (context, heroku) {
   // cli.debug(config)
   let res = merge(config.local, config.remote, context.flags)
   yield heroku.patch(`/apps/${context.app}/config-vars`, { body: res })
-  cli.log('Successuflly wrote settings to heroku!')
+  cli.log('Successfully wrote settings to heroku!')
 }
 
 module.exports = {
