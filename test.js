@@ -21,6 +21,10 @@ const merge = require('./util/merge')
 const file = rewire('./util/file')
 const header = file.__get__('header')
 const fs = require('fs')
+const rm = require('rimraf')
+
+// used for end-to-end tests
+const fname = 'hconfig-text.txt'
 
 // HELPERS
 function fetchCMD (name) {
@@ -29,15 +33,36 @@ function fetchCMD (name) {
 
 function setup () {
   cli.raiseErrors = true
+  cli.mockConsole()
 }
 
 function defaultFS () {
-  // this is so I can setup without affecting other tests
+  // return an object so I can setup without affecting other tests
   return {
     '.env': fixtures.local_file,
-    'other.txt': fixtures.local_file,
     'dnt': mock.file({mode: '000'})
   }
+}
+
+// returns true if the test should run, false if not
+function checkCleanFS () {
+  try {
+    if (!fs.accessSync(fname)) {
+      return false
+    }
+  } catch (err) {
+    buildFS()
+    return true
+  }
+// dont think I ever get here, file exists or it doesn't
+}
+
+function buildFS () {
+  fs.writeFileSync(fname, fixtures.local_file)
+}
+
+function cleanFS () {
+  rm.sync(fname)
 }
 
 // FIXTURES
@@ -111,7 +136,6 @@ describe('Reading', () => {
 
 describe('Writing', () => {
   beforeEach(() => {
-    cli.mockConsole()
     mock(defaultFS())
   })
 
@@ -141,61 +165,74 @@ describe('Transforming', () => {
   })
 })
 
-describe('Pushing', () => {
-  beforeEach(() => {
-    cli.mockConsole()
-    mock(defaultFS())
+describe('Actual Commands', () => {
+  // let good = true
+
+  describe('Pushing', () => {
+    let good
+
+    beforeEach(() => {
+      good = checkCleanFS()
+    })
+
+    it('should correctly push configs w/ flags', () => {
+      if (!good) {
+        throw new Error(`${fname} already exists and shouldn't!`)
+      } else {
+        nock('https://api.heroku.com:443')
+          .get('/apps/test/config-vars')
+          .reply(200, fixtures.remote_obj)
+
+        // this will fail if we don't pass the correct body, as intended
+        nock('https://api.heroku.com:443')
+          .patch('/apps/test/config-vars', fixtures.remote_win_obj)
+          .reply(200, fixtures.remote_win_obj)
+
+        // fetch the updated value
+        nock('https://api.heroku.com:443')
+          .get('/apps/test/config-vars')
+          .reply(200, fixtures.remote_win_obj)
+
+        let cmd = fetchCMD('push')
+
+        return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+          return cli.got('https://api.heroku.com:443/apps/test/config-vars')
+        }).then((res) => {
+          expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
+        })
+      }
+    })
+
+    afterEach(() => {
+      cleanFS()
+    })
   })
 
-  it('should correctly push configs w/ flags', () => {
-    nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
-      .reply(200, fixtures.remote_obj)
+  describe('Pulling', () => {
+    let good
 
-    // this will fail if we don't pass the correct body, as intended
-    nock('https://api.heroku.com:443')
-      .patch('/apps/test/config-vars', fixtures.remote_win_obj)
-      .reply(200, fixtures.remote_win_obj)
+    beforeEach(() => {
+      good = checkCleanFS()
+    })
 
-    // fetch the updated value
-    nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
-      .reply(200, fixtures.remote_win_obj)
+    it('should correctly pull configs', () => {
+      if (!good) {
+        throw new Error(`${fname} already exists and shouldn't!`)
+      } else {
+        nock('https://api.heroku.com:443')
+          .get('/apps/test/config-vars')
+          .reply(200, fixtures.remote_obj)
 
-    let cmd = fetchCMD('push')
-    let fname = 'other.txt'
-    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
-      return cli.got('https://api.heroku.com:443/apps/test/config-vars')
-    }).then((res) => {
-      expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
+        let cmd = fetchCMD('pull')
+        return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+          let res = fs.readFileSync(fname, 'utf-8')
+          expect(res).to.include(fixtures.merged_local_file)
+        })
+      }
     })
   })
 
   afterEach(() => {
-    mock.restore()
-  })
-})
-
-describe('Pulling', () => {
-  beforeEach(() => {
-    cli.mockConsole()
-    mock(defaultFS())
-  })
-
-  it('should correctly pull configs', () => {
-    nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
-      .reply(200, fixtures.remote_obj)
-
-    let cmd = fetchCMD('pull')
-    let fname = 'other.txt'
-    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
-      let res = fs.readFileSync(fname, 'utf-8')
-      expect(res).to.include(fixtures.merged_local_file)
-    })
-  })
-
-  afterEach(() => {
-    mock.restore()
+    cleanFS()
   })
 })
