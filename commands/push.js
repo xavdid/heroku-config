@@ -11,10 +11,13 @@ function * push (context, heroku) {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
     local: file.read(fname)
   }
-  // cli.debug(config)
   let res = merge(config.local, config.remote, context.flags)
-  yield heroku.patch(`/apps/${context.app}/config-vars`, { body: res })
-  cli.log('Successfully wrote settings to heroku!')
+  try {
+    yield heroku.patch(`/apps/${context.app}/config-vars`, { body: res })
+    cli.log('Successfully wrote settings to Heroku!')
+  } catch (err) {
+    cli.exit(1, err)
+  }
 }
 
 module.exports = {

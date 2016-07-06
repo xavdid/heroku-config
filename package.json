@@ -1,6 +1,6 @@
 {
   "name": "heroku-config",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
@@ -22,9 +22,9 @@
   },
   "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
   "dependencies": {
-    "heroku-cli-util": "^6.0.13",
-    "lodash.assign": "^4.0.8",
-    "mz": "^2.4.0"
+    "heroku-cli-util": "6.0.13",
+    "lodash.assign": "4.0.8",
+    "mz": "2.4.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",

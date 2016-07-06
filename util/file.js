@@ -13,7 +13,7 @@ function objToFileFormat (obj) {
   // makes file writing deterministic
   let keys = Object.keys(obj).sort()
   keys.forEach((key) => {
-    // there's a bug including newlines in template string
+    // there's a standard-formtter (traced back to babel) bug including newlines in template string
     res += (`${key}="${obj[key]}"` + '\n')
   })
   return res
@@ -28,7 +28,7 @@ function objFromFileFormat (s) {
       let key = config[1]
       // strip off trailing " if it's there
       let value = config[2].replace(/"$/, '')
-      if (res[key]) { cli.warning(`WARN - ${key} is in env file twice`) }
+      if (res[key]) { cli.warning(`WARN - "${key}" is in env file twice`) }
       res[key] = value
     }
   })
@@ -50,9 +50,9 @@ module.exports = {
   write: (obj, fname) => {
     fname = fname || DEFAULT_FNAME
     return fs.writeFile(fname, objToFileFormat(obj)).then(() => {
-      cli.log(`Successfully wrote config to ${fname}!`)
+      cli.log(`Successfully wrote config to "${fname}"!`)
     }).catch((err) => {
-      throw new Error(`Error writing to file ${fname} (${err.message})`)
+      return Promise.reject(new Error(`Error writing to file "${fname}" (${err.message})`))
     })
   }
 }

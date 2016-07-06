@@ -11,10 +11,13 @@ function * pull (context, heroku) {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
     local: file.read(fname)
   }
-  // cli.debug(config)
   let res = merge(config.remote, config.local, context.flags)
-  yield file.write(res, fname)
-// write handles success message
+  try {
+    // write handles success/fail message
+    yield file.write(res, fname)
+  } catch (err) {
+    cli.exit(1, err)
+  }
 }
 
 module.exports = {
