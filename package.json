@@ -22,8 +22,8 @@
   },
   "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
   "dependencies": {
-    "heroku-cli-util": "6.0.13",
-    "lodash.assign": "4.0.8",
+    "heroku-cli-util": "6.0.14",
+    "lodash.assign": "4.0.9",
     "mz": "2.4.0"
   },
   "devDependencies": {

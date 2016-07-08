@@ -23,7 +23,7 @@ function * push (context, heroku) {
 module.exports = {
   topic: 'config',
   command: 'push',
-  description: 'pushes env variables to heroku',
+  description: 'push env variables to heroku',
   help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
   needsApp: true,
   needsAuth: true,
