@@ -41,7 +41,7 @@ function defaultFS () {
 }
 
 // FIXTURES
-let fixtures = {
+const fixtures = {
   remote_obj: {
     NODE_ENV: 'production',
     NAME: 'david',
@@ -62,7 +62,7 @@ let fixtures = {
     NAME: 'david'
   },
 
-  local_file: '#comment\nNODE_ENV=test\nSOURCE=local\n\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
+  local_file: '#comment\nNODE_ENV=test\nSOURCE=local\nSOURCE=local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
 
   // test both quote styles
@@ -94,6 +94,7 @@ describe('Merging', () => {
 describe('Reading', () => {
   beforeEach(() => {
     mock(defaultFS())
+    cli.mockConsole()
   })
 
   it('should return empty object from non-existant file', () => {
@@ -102,6 +103,18 @@ describe('Reading', () => {
 
   it('should read a local file', () => {
     return expect(file.read('.env')).to.eventually.deep.equal(fixtures.local_obj)
+  })
+
+  it('should warn about duplicate keys', () => {
+    return file.read('.env').then(() => {
+      expect(cli.stderr).to.include('"SOURCE" is in env file twice')
+    })
+  })
+
+  it('should skip warnings in quiet mode', () => {
+    return file.read('.env', true).then(() => {
+      expect(cli.stderr).to.equal('')
+    })
   })
 
   afterEach(() => {
@@ -119,10 +132,21 @@ describe('Writing', () => {
     return expect(file.write({}, 'dnt')).to.be.rejectedWith(Error)
   })
 
-  it('should successfully write a file', () => {
+  let fname = '.env'
+  it('should successfully write a file, louldly', () => {
     return file.write(fixtures.sample_obj).then(() => {
-      let res = fs.readFileSync('.env', 'utf-8')
+      let res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.equal(fixtures.clean_sample_file)
+      expect(cli.stdout).to.not.equal('')
+    })
+  })
+
+  it('should successfully write a file, quietly', () => {
+    // need to pass all params if i'm passing quiet mode
+    return file.write(fixtures.sample_obj, fname, true).then(() => {
+      let res = fs.readFileSync(fname, 'utf-8')
+      expect(res).to.equal(fixtures.clean_sample_file)
+      expect(cli.stdout).to.equal('')
     })
   })
 
@@ -164,10 +188,11 @@ describe('Pushing', () => {
 
     let cmd = fetchCMD('push')
     let fname = 'other.txt'
-    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+    return cmd.run({flags: { file: fname, quiet: true }, app: 'test'}).then(() => {
       return cli.got('https://api.heroku.com:443/apps/test/config-vars')
     }).then((res) => {
       expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
+      expect(cli.stdout).to.equal('')
     })
   })
 
