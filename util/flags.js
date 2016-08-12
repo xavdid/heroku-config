@@ -14,8 +14,8 @@ module.exports = [{
   name: 'overwrite',
   char: 'o',
   description: 'overwrite destination config vars'
-// }, {
-//   name: 'quiet',
-//   char: 'q',
-//   description: 'suprress all non-error output'
+}, {
+  name: 'quiet',
+  char: 'q',
+  description: 'suprress all non-error output'
 }]

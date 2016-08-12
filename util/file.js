@@ -14,12 +14,14 @@ function objToFileFormat (obj) {
   let keys = Object.keys(obj).sort()
   keys.forEach((key) => {
     // there's a standard-formtter (traced back to babel) bug including newlines in template string
+    // see: https://github.com/millermedeiros/esformatter/issues/414
+    // res += (`${key}="${obj[key]}"\n`)
     res += (`${key}="${obj[key]}"` + '\n')
   })
   return res
 }
 
-function objFromFileFormat (s) {
+function objFromFileFormat (s, quiet) {
   let res = {}
   let data = s.split('\n')
   data.forEach(function (v) {
@@ -28,7 +30,7 @@ function objFromFileFormat (s) {
       let key = config[1]
       // strip off trailing " if it's there
       let value = config[2].replace(/"$/, '')
-      if (res[key]) { cli.warning(`WARN - "${key}" is in env file twice`) }
+      if (res[key] && !quiet) { cli.warn(`WARN - "${key}" is in env file twice`) }
       res[key] = value
     }
   })
@@ -36,21 +38,22 @@ function objFromFileFormat (s) {
 }
 
 module.exports = {
-  read: (fname) => {
+  read: (fname, quiet) => {
     fname = fname || DEFAULT_FNAME
-    // let data = fs.readFileSync(fname, 'utf-8')
     return fs.readFile(fname, 'utf-8').then((data) => {
-      return Promise.resolve(objFromFileFormat(data))
+      return Promise.resolve(objFromFileFormat(data, quiet))
     }).catch(() => {
-      // cli.warning(`WARN - Unable to read from ${fname}`)
+      // cli.warn(`WARN - Unable to read from ${fname}`)
       // if it doesn't exist or we can't read, just start from scratch
       return Promise.resolve({})
     })
   },
-  write: (obj, fname) => {
+  write: (obj, fname, quiet) => {
     fname = fname || DEFAULT_FNAME
     return fs.writeFile(fname, objToFileFormat(obj)).then(() => {
-      cli.log(`Successfully wrote config to "${fname}"!`)
+      if (!quiet) {
+        cli.log(`Successfully wrote config to "${fname}"!`)
+      }
     }).catch((err) => {
       return Promise.reject(new Error(`Error writing to file "${fname}" (${err.message})`))
     })

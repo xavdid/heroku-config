@@ -9,12 +9,14 @@ function * push (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
-    local: file.read(fname)
+    local: file.read(fname, context.flags.quiet)
   }
   let res = merge(config.local, config.remote, context.flags)
   try {
     yield heroku.patch(`/apps/${context.app}/config-vars`, { body: res })
-    cli.log('Successfully wrote settings to Heroku!')
+    if (!context.flags.quiet) {
+      cli.log('Successfully wrote settings to Heroku!')
+    }
   } catch (err) {
     cli.exit(1, err)
   }

@@ -9,12 +9,12 @@ function * pull (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
-    local: file.read(fname)
+    local: file.read(fname, context.flags.quiet)
   }
   let res = merge(config.remote, config.local, context.flags)
   try {
     // write handles success/fail message
-    yield file.write(res, fname)
+    yield file.write(res, fname, context.flags.quiet)
   } catch (err) {
     cli.exit(1, err)
   }
