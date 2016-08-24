@@ -5,7 +5,7 @@ const fs = require('mz/fs')
 const cli = require('heroku-cli-util')
 
 const DEFAULT_FNAME = '.env'
-const header = '# this file was creatd automatically by heroku-config\n\n'
+const header = '# this file was created automatically by heroku-config\n\n'
 
 function objToFileFormat (obj) {
   let res = `${header}`
