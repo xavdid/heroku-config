@@ -2,8 +2,15 @@
 
 const cli = require('heroku-cli-util')
 const co = require('co')
+const values = require('lodash.values')
+const findKey = require('lodash.findkey')
+
 const merge = require('../util/merge')
 const file = require('../util/file')
+
+// function hasProdValue (obj) {
+//   .indexOf('production') >= 0
+// }
 
 function * pull (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
@@ -12,6 +19,15 @@ function * pull (context, heroku) {
     local: file.read(fname, context.flags.quiet)
   }
   let res = merge(config.remote, config.local, context.flags)
+
+  const prodVal = values(res).find(i => i.match(/^prod/i))
+
+  if (prodVal && (yield file.shouldDeleteProd(context))) {
+    // only check settings if needed, cant yield with && ?
+    const k = findKey(res, i => i === prodVal)
+    delete res[k]
+  }
+
   try {
     // write handles success/fail message
     yield file.write(res, fname, context.flags.quiet)

@@ -24,6 +24,8 @@
   "dependencies": {
     "heroku-cli-util": "6.0.15",
     "lodash.assign": "4.1.0",
+    "lodash.findkey": "^4.6.0",
+    "lodash.values": "^4.3.0",
     "mz": "2.4.0"
   },
   "devDependencies": {
