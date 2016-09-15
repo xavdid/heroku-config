@@ -12,6 +12,9 @@ const mock = require('mock-fs')
 const rewire = require('rewire')
 // const fs = require('fs')
 
+const co = require('co')
+const stdin = require('mock-stdin').stdin()
+
 // heroku stuff
 const cli = require('heroku-cli-util')
 const commands = require('./index').commands
@@ -40,10 +43,17 @@ function defaultFS () {
   }
 }
 
+// https://glebbahmutov.com/blog/unit-testing-cli-programs/
+function mockInput (i) {
+  process.nextTick(() => {
+    stdin.send(i)
+  })
+}
+
 // FIXTURES
 const fixtures = {
   remote_obj: {
-    NODE_ENV: 'production',
+    NODE_ENV: 'pRoDuction',
     NAME: 'david',
     SOURCE: 'remote'
   }, local_obj: {
@@ -51,7 +61,7 @@ const fixtures = {
     SOURCE: 'local',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
   }, remote_win_obj: {
-    NODE_ENV: 'production',
+    NODE_ENV: 'pRoDuction',
     SOURCE: 'remote',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
     NAME: 'david'
@@ -165,6 +175,31 @@ describe('Transforming', () => {
   })
 })
 
+describe('Checking for Prod', () => {
+  beforeEach(() => {
+    // cli.mockConsole()
+    // mock(defaultFS())
+  })
+
+  it('should delete prod when prompted', () => {
+    mockInput('d')
+    return co(file.shouldDeleteProd({app: 'test'})).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(true)
+    })
+  })
+
+  it('should ignore prod when prompted', () => {
+    mockInput('i')
+    return co(file.shouldDeleteProd({app: 'test'})).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(false)
+    })
+  })
+
+  afterEach(() => {
+    // mock.restore()
+  })
+})
+
 describe('Pushing', () => {
   beforeEach(() => {
     cli.mockConsole()
@@ -186,8 +221,8 @@ describe('Pushing', () => {
       .get('/apps/test/config-vars')
       .reply(200, fixtures.remote_win_obj)
 
-    let cmd = fetchCMD('push')
-    let fname = 'other.txt'
+    const cmd = fetchCMD('push')
+    const fname = 'other.txt'
     return cmd.run({flags: { file: fname, quiet: true }, app: 'test'}).then(() => {
       return cli.got('https://api.heroku.com:443/apps/test/config-vars')
     }).then((res) => {
@@ -212,13 +247,19 @@ describe('Pulling', () => {
       .get('/apps/test/config-vars')
       .reply(200, fixtures.remote_obj)
 
-    let cmd = fetchCMD('pull')
-    let fname = 'other.txt'
+    const cmd = fetchCMD('pull')
+    const fname = 'other.txt'
     return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
-      let res = fs.readFileSync(fname, 'utf-8')
+      const res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.include(fixtures.merged_local_file)
     })
   })
+
+  // describe('skipping production value', () => {
+  //   it('should skip value', () => {
+  //     const cmd = fetchCMD('pull')
+  //   })
+  // })
 
   afterEach(() => {
     mock.restore()
