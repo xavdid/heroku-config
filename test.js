@@ -32,6 +32,7 @@ function fetchCMD (name) {
 
 function setup () {
   cli.raiseErrors = true
+  process.env.NODE_ENV = 'test'
 }
 
 function defaultFS () {

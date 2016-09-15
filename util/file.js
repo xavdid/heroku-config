@@ -78,7 +78,7 @@ module.exports = {
     }
 
     if (settings[context.app] === undefined) {
-      let answer = yield cli.prompt(question, {quiet: true})
+      let answer = yield cli.prompt(question, { quiet: process.env.NODE_ENV === 'test' })
       answer = answer.toLowerCase()
 
       if (answer === 'd' || answer === 'delete') {
