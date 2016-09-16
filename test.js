@@ -129,6 +129,7 @@ describe('Reading', () => {
 
   afterEach(() => {
     mock.restore()
+    cli.mockConsole(false)
   })
 })
 
@@ -162,6 +163,7 @@ describe('Writing', () => {
 
   afterEach(() => {
     mock.restore()
+    cli.mockConsole(false)
   })
 })
 
@@ -177,7 +179,7 @@ describe('Transforming', () => {
 
 describe('Checking for Prod', () => {
   beforeEach(() => {
-    cli.mockPrompt()
+    cli.mockConsole()
     // mock(defaultFS())
   })
 
@@ -196,7 +198,8 @@ describe('Checking for Prod', () => {
   })
 
   afterEach(() => {
-    mock.restore()
+    // mock.restore()
+    cli.mockConsole(false)
   })
 })
 
@@ -233,6 +236,7 @@ describe('Pushing', () => {
 
   afterEach(() => {
     mock.restore()
+    cli.mockConsole(false)
   })
 })
 
@@ -263,5 +267,6 @@ describe('Pulling', () => {
 
   afterEach(() => {
     mock.restore()
+    cli.mockConsole(false)
   })
 })
