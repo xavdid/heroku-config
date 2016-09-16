@@ -32,7 +32,6 @@ function fetchCMD (name) {
 
 function setup () {
   cli.raiseErrors = true
-  process.env.NODE_ENV = 'test'
 }
 
 function defaultFS () {
@@ -178,7 +177,7 @@ describe('Transforming', () => {
 
 describe('Checking for Prod', () => {
   beforeEach(() => {
-    // cli.mockConsole()
+    cli.mockPrompt()
     // mock(defaultFS())
   })
 
@@ -197,7 +196,7 @@ describe('Checking for Prod', () => {
   })
 
   afterEach(() => {
-    // mock.restore()
+    mock.restore()
   })
 })
 
