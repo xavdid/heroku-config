@@ -8,10 +8,6 @@ const findKey = require('lodash.findkey')
 const merge = require('../util/merge')
 const file = require('../util/file')
 
-// function hasProdValue (obj) {
-//   .indexOf('production') >= 0
-// }
-
 function * pull (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
@@ -22,8 +18,7 @@ function * pull (context, heroku) {
 
   const prodVal = values(res).find(i => i.match(/^prod/i))
 
-  if (prodVal && (yield file.shouldDeleteProd(context))) {
-    // only check settings if needed, cant yield with && ?
+  if (prodVal && (yield file.shouldDeleteProd(context, prodVal))) {
     const k = findKey(res, i => i === prodVal)
     delete res[k]
   }

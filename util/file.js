@@ -37,12 +37,14 @@ function objFromFileFormat (s, quiet) {
   return res
 }
 
-const question = [
-  'Your config has a value called "production", which is usually pulled in error.',
-  'Should we:',
-  '[d]elete | [i]gnore | [a]lways (delete) | [n]ever (delete)',
-  'that key/value pair for this app?'
-].join('\n\n')
+function question (val) {
+  return [
+    `Your config has a value called "${val}", which is usually pulled in error.`,
+    'Should we:',
+    '[d]elete | [i]gnore | [a]lways (delete) | [n]ever (delete)',
+    'that key/value pair for this app?'
+  ].join('\n\n')
+}
 
 module.exports = {
   read: (fname, quiet) => {
@@ -65,21 +67,20 @@ module.exports = {
       return Promise.reject(new Error(`Error writing to file "${fname}" (${err.message})`))
     })
   },
-  shouldDeleteProd: function * (context) {
+  shouldDeleteProd: function * (context, val) {
     const path = require('path')
 
-    const settingsUrl = path.join(process.env['HOME'], '.heroku_config_settings.json')
+    const settingsUrl = path.join(process.env.HOME, '.heroku_config_settings.json')
 
     let settings
     try {
-      settings = require(settingsUrl)
+      settings = JSON.parse(fs.readFileSync(settingsUrl, 'utf-8'))
     } catch (e) {
       settings = {}
     }
 
     if (settings[context.app] === undefined) {
-      let answer = yield cli.prompt(question)
-      answer = answer.toLowerCase()
+      let answer = (yield cli.prompt(question(val))).toLowerCase()
 
       if (answer === 'd' || answer === 'delete') {
         return true

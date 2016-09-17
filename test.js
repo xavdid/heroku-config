@@ -10,7 +10,8 @@ nock.disableNetConnect()
 
 const mock = require('mock-fs')
 const rewire = require('rewire')
-// const fs = require('fs')
+const fs = require('fs')
+const path = require('path')
 
 const co = require('co')
 const stdin = require('mock-stdin').stdin()
@@ -23,7 +24,6 @@ const commands = require('./index').commands
 const merge = require('./util/merge')
 const file = rewire('./util/file')
 const header = file.__get__('header')
-const fs = require('fs')
 
 // HELPERS
 function fetchCMD (name) {
@@ -50,22 +50,38 @@ function mockInput (i) {
   })
 }
 
+// val must be true or false
+function mockSettingsFile (val) {
+  const location = path.join(process.env.HOME, '.heroku_config_settings.json')
+  fs.writeFileSync(location, fixtures[`settings_obj_${val}`])
+}
+
+function nockFetchConfig (appName) {
+  appName = appName || 'test'
+  nock('https://api.heroku.com:443')
+    .get(`/apps/${appName}/config-vars`)
+    .reply(200, fixtures.remote_obj)
+}
+
 // FIXTURES
 const fixtures = {
   remote_obj: {
     NODE_ENV: 'pRoDuction',
     NAME: 'david',
     SOURCE: 'remote'
-  }, local_obj: {
+  },
+  local_obj: {
     NODE_ENV: 'test',
     SOURCE: 'local',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
-  }, remote_win_obj: {
+  },
+  remote_win_obj: {
     NODE_ENV: 'pRoDuction',
     SOURCE: 'remote',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
     NAME: 'david'
-  }, local_win_obj: {
+  },
+  local_win_obj: {
     NODE_ENV: 'test',
     SOURCE: 'local',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
@@ -78,7 +94,9 @@ const fixtures = {
   // test both quote styles
   sample_file: header + 'PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
   clean_sample_file: header + 'CITY="boulder"\nNAME="david"\nPIZZA="Abo\'s"\n',
-  sample_obj: { NAME: 'david', CITY: 'boulder', PIZZA: "Abo's" }
+  sample_obj: { NAME: 'david', CITY: 'boulder', PIZZA: "Abo's" },
+  settings_obj_true: JSON.stringify({ blah: true }),
+  settings_obj_false: JSON.stringify({ blah: false })
 }
 
 // TESTS
@@ -143,10 +161,10 @@ describe('Writing', () => {
     return expect(file.write({}, 'dnt')).to.be.rejectedWith(Error)
   })
 
-  let fname = '.env'
+  const fname = '.env'
   it('should successfully write a file, louldly', () => {
     return file.write(fixtures.sample_obj).then(() => {
-      let res = fs.readFileSync(fname, 'utf-8')
+      const res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.equal(fixtures.clean_sample_file)
       expect(cli.stdout).to.not.equal('')
     })
@@ -155,7 +173,7 @@ describe('Writing', () => {
   it('should successfully write a file, quietly', () => {
     // need to pass all params if i'm passing quiet mode
     return file.write(fixtures.sample_obj, fname, true).then(() => {
-      let res = fs.readFileSync(fname, 'utf-8')
+      const res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.equal(fixtures.clean_sample_file)
       expect(cli.stdout).to.equal('')
     })
@@ -180,26 +198,45 @@ describe('Transforming', () => {
 describe('Checking for Prod', () => {
   beforeEach(() => {
     cli.mockConsole()
-    // mock(defaultFS())
   })
 
   it('should delete prod when prompted', () => {
     mockInput('d')
-    return co(file.shouldDeleteProd({app: 'test'})).then((shouldDelete) => {
+    return co(file.shouldDeleteProd({ app: 'test' })).then((shouldDelete) => {
       expect(shouldDelete).to.equal(true)
     })
   })
 
   it('should ignore prod when prompted', () => {
     mockInput('i')
-    return co(file.shouldDeleteProd({app: 'test'})).then((shouldDelete) => {
+    return co(file.shouldDeleteProd({ app: 'test' })).then((shouldDelete) => {
       expect(shouldDelete).to.equal(false)
     })
   })
 
+  it('should read a true settings file if able', () => {
+    const testMode = true
+    mock()
+    mockSettingsFile(testMode)
+
+    return co(file.shouldDeleteProd({ app: 'blah' })).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(testMode)
+    })
+  })
+
+  it('should read a false settings file if able', () => {
+    const testMode = false
+    mock()
+    mockSettingsFile(testMode)
+
+    return co(file.shouldDeleteProd({ app: 'blah' })).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(testMode)
+    })
+  })
+
   afterEach(() => {
-    // mock.restore()
     cli.mockConsole(false)
+    mock.restore()
   })
 })
 
@@ -210,10 +247,10 @@ describe('Pushing', () => {
   })
 
   it('should correctly push configs w/ flags', () => {
-    nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
-      .reply(200, fixtures.remote_obj)
+    const cmd = fetchCMD('push')
+    const fname = 'other.txt'
 
+    nockFetchConfig()
     // this will fail if we don't pass the correct body, as intended
     nock('https://api.heroku.com:443')
       .patch('/apps/test/config-vars', fixtures.remote_win_obj)
@@ -221,12 +258,10 @@ describe('Pushing', () => {
 
     // fetch the updated value
     nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
+      .get(`/apps/test/config-vars`)
       .reply(200, fixtures.remote_win_obj)
 
-    const cmd = fetchCMD('push')
-    const fname = 'other.txt'
-    return cmd.run({flags: { file: fname, quiet: true }, app: 'test'}).then(() => {
+    return cmd.run({ flags: { file: fname, quiet: true }, app: 'test' }).then(() => {
       return cli.got('https://api.heroku.com:443/apps/test/config-vars')
     }).then((res) => {
       expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
@@ -246,24 +281,42 @@ describe('Pulling', () => {
     mock(defaultFS())
   })
 
-  it('should correctly pull configs', () => {
-    nock('https://api.heroku.com:443')
-      .get('/apps/test/config-vars')
-      .reply(200, fixtures.remote_obj)
+  const cmd = fetchCMD('pull')
 
-    const cmd = fetchCMD('pull')
+  it('should correctly pull configs', () => {
     const fname = 'other.txt'
-    return cmd.run({flags: {file: fname}, app: 'test'}).then(() => {
+    nockFetchConfig()
+
+    return cmd.run({ flags: { file: fname }, app: 'test' }).then(() => {
       const res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.include(fixtures.merged_local_file)
     })
   })
 
-  // describe('skipping production value', () => {
-  //   it('should skip value', () => {
-  //     const cmd = fetchCMD('pull')
-  //   })
-  // })
+  describe('skipping production value', () => {
+    const fname = '.env'
+    const appName = 'blah'
+
+    it('should delete value', () => {
+      mockSettingsFile(true)
+      nockFetchConfig(appName)
+
+      return cmd.run({ flags: { overwrite: true }, app: appName }).then(() => {
+        const res = fs.readFileSync(fname, 'utf-8')
+        expect(res).not.to.include('pRoDuction')
+      })
+    })
+
+    it('should not delete value', () => {
+      mockSettingsFile(false)
+      nockFetchConfig(appName)
+
+      return cmd.run({ flags: { overwrite: true }, app: appName }).then(() => {
+        const res = fs.readFileSync(fname, 'utf-8')
+        expect(res).to.include('pRoDuction')
+      })
+    })
+  })
 
   afterEach(() => {
     mock.restore()
