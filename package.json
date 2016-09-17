@@ -23,9 +23,9 @@
   "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
   "dependencies": {
     "heroku-cli-util": "xavdid/heroku-cli-util",
-    "lodash.assign": "4.1.0",
-    "lodash.findkey": "^4.6.0",
-    "lodash.values": "^4.3.0",
+    "lodash.assign": "4.2.0",
+    "lodash.findkey": "4.6.0",
+    "lodash.values": "4.3.0",
     "mz": "2.4.0"
   },
   "devDependencies": {
@@ -37,6 +37,6 @@
     "nock": "^8.0.0",
     "rewire": "^2.5.1",
     "rimraf": "^2.5.2",
-    "standard": "^7.0.0"
+    "standard": "^8.0.0"
   }
 }
