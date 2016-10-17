@@ -29,6 +29,27 @@ This package includes two commands:
 
 Run `heroku help config:pull` and `heroku help config:push` to see a full list of flags.
 
+### File Format
+
+There's a lot of flexibility when it comes to how you can format your file. Key capitalization can go either way and there can be spacing around the `=` on one, both, or neither side. There can also be a leading `export` if you want to use the same file for shell stuff.
+
+All of the following are valid lines:
+
+```
+#comment
+NODE_ENV= test
+source =local
+job = programming
+DB_STRING=mongo://blah@thing.mongo.thing.com:4567
+export THING
+```
+
+The following are all invalid lines:
+
+```
+ # comment with leading space
+key with=space
+```
 
 ## Development
 

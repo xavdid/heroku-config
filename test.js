@@ -39,7 +39,8 @@ function defaultFS () {
   return {
     '.env': fixtures.local_file,
     'other.txt': fixtures.local_file,
-    'dnt': mock.file({mode: '000'})
+    'dnt': mock.file({mode: '000'}),
+    'bad': fixtures.bad_file
   }
 }
 
@@ -88,11 +89,12 @@ const fixtures = {
     NAME: 'david'
   },
 
-  local_file: '#comment\nNODE_ENV=test\nSOURCE=local\nSOURCE=local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
+  bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
+  local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
 
   // test both quote styles
-  sample_file: header + 'PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
+  sample_file: header + 'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
   clean_sample_file: header + 'CITY="boulder"\nNAME="david"\nPIZZA="Abo\'s"\n',
   sample_obj: { NAME: 'david', CITY: 'boulder', PIZZA: "Abo's" },
   settings_obj_true: JSON.stringify({ blah: true }),
@@ -145,6 +147,12 @@ describe('Reading', () => {
     })
   })
 
+  it('should warn when it hits a malformed line', () => {
+    return file.read('bad').then(() => {
+      expect(cli.stderr).to.include('unable to parse line')
+    })
+  })
+
   afterEach(() => {
     mock.restore()
     cli.mockConsole(false)
@@ -157,7 +165,7 @@ describe('Writing', () => {
     mock(defaultFS())
   })
 
-  it('should fail to read from a file it lacks permissions for', () => {
+  it('should fail to write to a file it lacks permissions for', () => {
     return expect(file.write({}, 'dnt')).to.be.rejectedWith(Error)
   })
 

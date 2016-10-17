@@ -25,15 +25,21 @@ function objFromFileFormat (s, quiet) {
   let res = {}
   let data = s.split('\n')
   data.forEach(function (v) {
-    let config = v.match(/^([A-Za-z0-9_]+)="?(.*)$/)
+    // optional leading export, optional spaces around =
+    let config = v.match(/^(export)? ?([A-Za-z0-9_]+) ?= ?"?(.*)$/)
     if (config) {
-      let key = config[1]
+      let key = config[2]
       // strip off trailing " if it's there
-      let value = config[2].replace(/"$/, '')
+      let value = config[3].replace(/"$/, '')
       if (res[key] && !quiet) { cli.warn(`WARN - "${key}" is in env file twice`) }
       res[key] = value
+    } else {
+      if (v[0] !== '#' && v !== '' && !quiet) {
+        cli.warn(`WARN - unable to parse line: ${v}`)
+      }
     }
   })
+
   return res
 }
 
