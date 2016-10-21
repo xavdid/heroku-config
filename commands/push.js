@@ -6,7 +6,7 @@ const merge = require('../util/merge')
 const file = require('../util/file')
 const array = require('lodash/array')
 
-function * patchConfig(context, heroku, payload, success) {
+function * patchConfig (context, heroku, payload, success) {
   try {
     yield heroku.patch(`/apps/${context.app}/config-vars`, { body: payload })
     if (!context.flags.quiet) {
@@ -28,11 +28,11 @@ function * push (context, heroku) {
   yield patchConfig(context, heroku, res, 'Successfully wrote settings to Heroku!')
 
   if (context.flags.clean) {
-    let localKeys   = Object.keys(config.local)
-    let remoteKeys  = Object.keys(config.remote)
-    let deleteKeys  = array.difference(remoteKeys, localKeys)
-    let deleteVals  = array.fill(new Array(deleteKeys.length), null)
-    let payload     = array.zipObject(deleteKeys, deleteVals)
+    let localKeys = Object.keys(config.local)
+    let remoteKeys = Object.keys(config.remote)
+    let deleteKeys = array.difference(remoteKeys, localKeys)
+    let deleteVals = array.fill(new Array(deleteKeys.length), null)
+    let payload = array.zipObject(deleteKeys, deleteVals)
 
     yield patchConfig(context, heroku, payload, 'Successfully deleted unused settings from Heroku!')
   }
