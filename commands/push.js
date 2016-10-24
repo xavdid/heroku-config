@@ -36,13 +36,18 @@ function * push (context, heroku) {
   }
 }
 
-module.exports = {
-  topic: 'config',
-  command: 'push',
-  description: 'push env variables to heroku',
-  help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
-  needsApp: true,
-  needsAuth: true,
-  run: cli.command(co.wrap(push)),
-  flags: require('../util/flags')
-}
+module.exports = (() => {
+  let flags = []
+  flags.push(require('../util/flags'))
+  flags.push({ name: 'clean', char: 'c', description: 'delete all destination vars that do not appear in local file' })
+  return {
+    topic: 'config',
+    command: 'push',
+    description: 'push env variables to heroku',
+    help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
+    needsApp: true,
+    needsAuth: true,
+    run: cli.command(co.wrap(push)),
+    flags: array.flatten(flags)
+  }
+})()

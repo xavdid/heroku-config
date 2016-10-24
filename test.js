@@ -270,15 +270,8 @@ describe('Pushing', () => {
       .patch('/apps/test/config-vars', fixtures.remote_win_obj)
       .reply(200, fixtures.remote_win_obj)
 
-    // fetch the updated value
-    nock('https://api.heroku.com:443')
-      .get(`/apps/test/config-vars`)
-      .reply(200, fixtures.remote_win_obj)
-
     return cmd.run({ flags: { file: fname, quiet: true }, app: 'test' }).then(() => {
-      return cli.got('https://api.heroku.com:443/apps/test/config-vars')
-    }).then((res) => {
-      expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
+      expect(nock.isDone()).to.equal(true)
       expect(cli.stdout).to.equal('')
     })
   })
@@ -296,15 +289,8 @@ describe('Pushing', () => {
       .patch('/apps/test/config-vars', { NAME: null })
       .reply(200, fixtures.remote_cleaned_obj)
 
-    // fetch the updated value
-    nock('https://api.heroku.com:443')
-      .get(`/apps/test/config-vars`)
-      .reply(200, fixtures.remote_cleaned_obj)
-
     return cmd.run({ flags: { clean: true }, app: 'test' }).then(() => {
-      return cli.got('https://api.heroku.com:443/apps/test/config-vars')
-    }).then((res) => {
-      expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_cleaned_obj)
+      expect(nock.isDone()).to.equal(true)
     })
   })
 
