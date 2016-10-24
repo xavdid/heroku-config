@@ -28,13 +28,11 @@ function * push (context, heroku) {
   yield patchConfig(context, heroku, res, 'Successfully wrote settings to Heroku!')
 
   if (context.flags.clean) {
-    let localKeys = Object.keys(config.local)
-    let remoteKeys = Object.keys(config.remote)
-    let deleteKeys = array.difference(remoteKeys, localKeys)
-    let deleteVals = array.fill(new Array(deleteKeys.length), null)
-    let payload = array.zipObject(deleteKeys, deleteVals)
+    // grab keys that weren't in local
+    let keysToDelete = array.difference(Object.keys(config.remote), Object.keys(config.local))
+    let nullKeys = array.fromPairs(keysToDelete.map(k => [k, null]))
 
-    yield patchConfig(context, heroku, payload, 'Successfully deleted unused settings from Heroku!')
+    yield patchConfig(context, heroku, nullKeys, 'Successfully deleted unused settings from Heroku!')
   }
 }
 

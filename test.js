@@ -88,11 +88,10 @@ const fixtures = {
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
     NAME: 'david'
   },
-  delete_win_obj: {
-    NODE_ENV: 'test',
-    SOURCE: 'local',
-    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
-    UNUSED: 'this gets deleted'
+  remote_cleaned_obj: {
+    NODE_ENV: 'pRoDuction',
+    SOURCE: 'remote',
+    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
   },
 
   bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
@@ -284,25 +283,28 @@ describe('Pushing', () => {
     })
   })
 
-  describe('Cleaning unused configs', () => {
-    it('should correctly push null values for unused configs', () => {
-      nock('https://api.heroku.com:443')
-        .patch('/apps/test/config-vars', fixtures.delete_win_obj)
-        .reply(200, fixtures.delete_win_obj)
+  it('should correctly push null values for unused configs', () => {
+    nockFetchConfig()
 
-      nock('https://api.heroku.com:443')
-        .get(`/apps/test/config-vars`)
-        .reply(200, fixtures.delete_win_obj)
+    // this will fail if we don't pass the correct body, as intended
+    nock('https://api.heroku.com:443')
+      .patch('/apps/test/config-vars', fixtures.remote_win_obj)
+      .reply(200, fixtures.remote_win_obj)
 
-      // delete call
-      nock('https://api.heroku.com:443')
-        .patch('/apps/test/config-vars', { UNUSED: null })
-        .reply(200, fixtures.local_win_obj)
+    // delete call
+    nock('https://api.heroku.com:443')
+      .patch('/apps/test/config-vars', { NAME: null })
+      .reply(200, fixtures.remote_cleaned_obj)
 
-      let flags = { file: fname, quiet: true, clean: true }
-      return cmd.run({ flags: flags, app: 'test' }).then(() => {
-        expect(nock.isDone()).to.equal(true)
-      })
+    // fetch the updated value
+    nock('https://api.heroku.com:443')
+      .get(`/apps/test/config-vars`)
+      .reply(200, fixtures.remote_cleaned_obj)
+
+    return cmd.run({ flags: { clean: true }, app: 'test' }).then(() => {
+      return cli.got('https://api.heroku.com:443/apps/test/config-vars')
+    }).then((res) => {
+      expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_cleaned_obj)
     })
   })
 

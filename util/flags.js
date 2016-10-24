@@ -21,5 +21,5 @@ module.exports = [{
 }, {
   name: 'clean',
   char: 'c',
-  description: 'delete all config vars destination that do not appear in local file'
+  description: '(push only) delete all destination vars that do not appear in local file'
 }]
