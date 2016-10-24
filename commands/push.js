@@ -28,23 +28,26 @@ function * push (context, heroku) {
   yield patchConfig(context, heroku, res, 'Successfully wrote settings to Heroku!')
 
   if (context.flags.clean) {
-    let localKeys = Object.keys(config.local)
-    let remoteKeys = Object.keys(config.remote)
-    let deleteKeys = array.difference(remoteKeys, localKeys)
-    let deleteVals = array.fill(new Array(deleteKeys.length), null)
-    let payload = array.zipObject(deleteKeys, deleteVals)
+    // grab keys that weren't in local
+    let keysToDelete = array.difference(Object.keys(config.remote), Object.keys(config.local))
+    let nullKeys = array.fromPairs(keysToDelete.map(k => [k, null]))
 
-    yield patchConfig(context, heroku, payload, 'Successfully deleted unused settings from Heroku!')
+    yield patchConfig(context, heroku, nullKeys, 'Successfully deleted unused settings from Heroku!')
   }
 }
 
-module.exports = {
-  topic: 'config',
-  command: 'push',
-  description: 'push env variables to heroku',
-  help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
-  needsApp: true,
-  needsAuth: true,
-  run: cli.command(co.wrap(push)),
-  flags: require('../util/flags')
-}
+module.exports = (() => {
+  let flags = []
+  flags.push(require('../util/flags'))
+  flags.push({ name: 'clean', char: 'c', description: 'delete all destination vars that do not appear in local file' })
+  return {
+    topic: 'config',
+    command: 'push',
+    description: 'push env variables to heroku',
+    help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
+    needsApp: true,
+    needsAuth: true,
+    run: cli.command(co.wrap(push)),
+    flags: array.flatten(flags)
+  }
+})()

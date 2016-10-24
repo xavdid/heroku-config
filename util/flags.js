@@ -18,8 +18,4 @@ module.exports = [{
   name: 'quiet',
   char: 'q',
   description: 'supress all non-error output'
-}, {
-  name: 'clean',
-  char: 'c',
-  description: 'delete all config vars destination that do not appear in local file'
 }]

@@ -13,6 +13,8 @@ Running this code has the potential to delete your configurations if misused.
 
 Specifically, the `-o` flag will overwrite values at the destination. Only use that if the source has more up to date info and you're feeling brave. Otherwise, this merges configs and is fairly safe. Just thought you should know.
 
+Also, the `-c` flag will _delete_ values that didn't exist locally when you pushed. Only use it if you know that.
+
 ## Usage
 
 You can install the package by running
