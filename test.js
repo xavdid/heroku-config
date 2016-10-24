@@ -88,6 +88,12 @@ const fixtures = {
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
     NAME: 'david'
   },
+  delete_win_obj: {
+    NODE_ENV: 'test',
+    SOURCE: 'local',
+    DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567',
+    UNUSED: 'this gets deleted'
+  },
 
   bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
   local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
@@ -254,11 +260,12 @@ describe('Pushing', () => {
     mock(defaultFS())
   })
 
-  it('should correctly push configs w/ flags', () => {
-    const cmd = fetchCMD('push')
-    const fname = 'other.txt'
+  const cmd = fetchCMD('push')
+  const fname = 'other.txt'
 
+  it('should correctly push configs w/ flags', () => {
     nockFetchConfig()
+
     // this will fail if we don't pass the correct body, as intended
     nock('https://api.heroku.com:443')
       .patch('/apps/test/config-vars', fixtures.remote_win_obj)
@@ -274,6 +281,28 @@ describe('Pushing', () => {
     }).then((res) => {
       expect(JSON.parse(res.body)).to.deep.equal(fixtures.remote_win_obj)
       expect(cli.stdout).to.equal('')
+    })
+  })
+
+  describe('Cleaning unused configs', () => {
+    it('should correctly push null values for unused configs', () => {
+      nock('https://api.heroku.com:443')
+        .patch('/apps/test/config-vars', fixtures.delete_win_obj)
+        .reply(200, fixtures.delete_win_obj)
+
+      nock('https://api.heroku.com:443')
+        .get(`/apps/test/config-vars`)
+        .reply(200, fixtures.delete_win_obj)
+
+      // delete call
+      nock('https://api.heroku.com:443')
+        .patch('/apps/test/config-vars', { UNUSED: null })
+        .reply(200, fixtures.local_win_obj)
+
+      let flags = { file: fname, quiet: true, clean: true }
+      return cmd.run({ flags: flags, app: 'test' }).then(() => {
+        expect(nock.isDone()).to.equal(true)
+      })
     })
   })
 

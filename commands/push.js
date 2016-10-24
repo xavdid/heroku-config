@@ -4,6 +4,18 @@ const cli = require('heroku-cli-util')
 const co = require('co')
 const merge = require('../util/merge')
 const file = require('../util/file')
+const array = require('lodash/array')
+
+function * patchConfig (context, heroku, payload, success) {
+  try {
+    yield heroku.patch(`/apps/${context.app}/config-vars`, { body: payload })
+    if (!context.flags.quiet) {
+      cli.log(success)
+    }
+  } catch (err) {
+    cli.exit(1, err)
+  }
+}
 
 function * push (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
@@ -11,14 +23,18 @@ function * push (context, heroku) {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
     local: file.read(fname, context.flags.quiet)
   }
+
   let res = merge(config.local, config.remote, context.flags)
-  try {
-    yield heroku.patch(`/apps/${context.app}/config-vars`, { body: res })
-    if (!context.flags.quiet) {
-      cli.log('Successfully wrote settings to Heroku!')
-    }
-  } catch (err) {
-    cli.exit(1, err)
+  yield patchConfig(context, heroku, res, 'Successfully wrote settings to Heroku!')
+
+  if (context.flags.clean) {
+    let localKeys = Object.keys(config.local)
+    let remoteKeys = Object.keys(config.remote)
+    let deleteKeys = array.difference(remoteKeys, localKeys)
+    let deleteVals = array.fill(new Array(deleteKeys.length), null)
+    let payload = array.zipObject(deleteKeys, deleteVals)
+
+    yield patchConfig(context, heroku, payload, 'Successfully deleted unused settings from Heroku!')
   }
 }
 
