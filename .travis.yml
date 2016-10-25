@@ -1,5 +1,7 @@
 language: node_js
 # version specified by heroku
+# https://github.com/heroku/cli/blob/master/Makefile
 node_js:
-  - "6.2.2"
-
+  - "6.2.1"
+notifications:
+  on_failure: change
