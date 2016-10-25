@@ -55,4 +55,6 @@ key with=space
 
 ## Development
 
+You'll need Node version `>= 6.0`. If you want to match exactly, check out the heroku cli's node version [here](https://github.com/heroku/cli/blob/master/Makefile#4). I like [nvm](https://github.com/creationix/nvm) for managing multiple node versions.
+
 After cloning, follow [these](https://devcenter.heroku.com/articles/developing-cli-plug-ins#installing-the-plugin) instructions to run locally! I welcome pull requests with fixes or new features.
