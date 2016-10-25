@@ -32,6 +32,7 @@ function fetchCMD (name) {
 
 function setup () {
   cli.raiseErrors = true
+  cli.exit.mock()
 }
 
 function defaultFS () {
