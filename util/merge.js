@@ -1,7 +1,7 @@
 // merge two env objects
 'use strict'
 
-const assign = require('lodash.assign')
+const _ = require('lodash')
 
 module.exports = (sub, dom, flags) => {
   // console.log(`overwrite is ${flags.overwrite}`)
@@ -9,8 +9,8 @@ module.exports = (sub, dom, flags) => {
 
   // blank object is so sources aren't modified
   if (flags.overwrite) {
-    return assign({}, dom, sub)
+    return _.assign({}, dom, sub)
   } else {
-    return assign({}, sub, dom)
+    return _.assign({}, sub, dom)
   }
 }

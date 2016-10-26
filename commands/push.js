@@ -4,7 +4,7 @@ const cli = require('heroku-cli-util')
 const co = require('co')
 const merge = require('../util/merge')
 const file = require('../util/file')
-const array = require('lodash/array')
+const _ = require('lodash')
 
 function * patchConfig (context, heroku, payload, success) {
   try {
@@ -29,8 +29,8 @@ function * push (context, heroku) {
 
   if (context.flags.clean) {
     // grab keys that weren't in local
-    let keysToDelete = array.difference(Object.keys(config.remote), Object.keys(config.local))
-    let nullKeys = array.fromPairs(keysToDelete.map(k => [k, null]))
+    let keysToDelete = _.difference(Object.keys(config.remote), Object.keys(config.local))
+    let nullKeys = _.fromPairs(keysToDelete.map(k => [k, null]))
 
     yield patchConfig(context, heroku, nullKeys, 'Successfully deleted unused settings from Heroku!')
   }
@@ -48,6 +48,6 @@ module.exports = (() => {
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(push)),
-    flags: array.flatten(flags)
+    flags: _.flatten(flags)
   }
 })()
