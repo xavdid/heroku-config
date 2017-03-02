@@ -13,17 +13,21 @@ function objToFileFormat (obj) {
   // makes file writing deterministic
   let keys = Object.keys(obj).sort()
   keys.forEach((key) => {
-    // there's a standard-formtter (traced back to babel) bug including newlines in template string
-    // see: https://github.com/millermedeiros/esformatter/issues/414
-    // res += (`${key}="${obj[key]}"\n`)
-    res += (`${key}="${obj[key]}"` + '\n')
+    res += (`${key}="${obj[key]}"\n`)
   })
   return res
 }
 
 function objFromFileFormat (s, quiet) {
   let res = {}
-  let data = s.split('\n')
+  let splitter
+  // could also use process.platform but this feels more reliable
+  if (s.match(/\r\n/)) {
+    splitter = '\r\n'
+  } else {
+    splitter = '\n'
+  }
+  const data = s.split(splitter)
   data.forEach(function (v) {
     // optional leading export, optional spaces around =
     let config = v.match(/^(export)? ?([A-Za-z0-9_]+) ?= ?"?(.*)$/)

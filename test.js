@@ -39,6 +39,7 @@ function defaultFS () {
   // this is so I can setup without affecting other tests
   return {
     '.env': fixtures.local_file,
+    'windows': fixtures.windows_file,
     'other.txt': fixtures.local_file,
     'dnt': mock.file({mode: '000'}),
     'bad': fixtures.bad_file
@@ -97,6 +98,7 @@ const fixtures = {
 
   bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
   local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
+  windows_file: '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
 
   // test both quote styles
@@ -139,6 +141,10 @@ describe('Reading', () => {
 
   it('should read a local file', () => {
     return expect(file.read('.env')).to.eventually.deep.equal(fixtures.local_obj)
+  })
+
+  it('should read a local windows file', () => {
+    return expect(file.read('windows')).to.eventually.deep.equal(fixtures.local_obj)
   })
 
   it('should warn about duplicate keys', () => {
