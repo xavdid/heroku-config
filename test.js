@@ -30,6 +30,11 @@ function fetchCMD (name) {
   return commands.find((c) => c.command === name)
 }
 
+// heroku-cli err output depends on terminal width, so we have to standardize
+function cleanStdErr (s) {
+  return s.replace(/\n|▸| {2,}/g, '')
+}
+
 function setup () {
   cli.raiseErrors = true
   cli.exit.mock()
@@ -149,7 +154,7 @@ describe('Reading', () => {
 
   it('should warn about duplicate keys', () => {
     return file.read('.env').then(() => {
-      expect(cli.stderr).to.include('"SOURCE" is in env file twice')
+      expect(cleanStdErr(cli.stderr)).to.include('"SOURCE" is in env file twice')
     })
   })
 
@@ -161,7 +166,7 @@ describe('Reading', () => {
 
   it('should warn when it hits a malformed line', () => {
     return file.read('bad').then(() => {
-      expect(cli.stderr).to.include('unable to parse line')
+      expect(cleanStdErr(cli.stderr)).to.include('unable to parse line')
     })
   })
 
