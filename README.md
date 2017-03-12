@@ -33,7 +33,9 @@ Run `heroku help config:pull` and `heroku help config:push` to see a full list o
 
 ### File Format
 
-There's a lot of flexibility when it comes to how you can format your file. Key capitalization can go either way and there can be spacing around the `=` on one, both, or neither side. There can also be a leading `export` if you want to use the same file to populate your local environment. Since heroku [runs on linux](https://devcenter.heroku.com/articles/stack#cedar), variable names must conform to those valid in [unix](https://stackoverflow.com/questions/2821043/allowed-characters-in-linux-environment-variable-names/2821183#2821183). As of `v1.3.2` we support both unix and windows-style newlines!
+There's a lot of flexibility when it comes to how you can format your file. Key capitalization can go either way and there can be spacing around the `=` on one, both, or neither side. There can also be a leading `export` if you want to use the same file to populate your local environment. Since heroku [runs on linux](https://devcenter.heroku.com/articles/stack#cedar), variable names must conform to those valid in [unix](https://stackoverflow.com/questions/2821043/allowed-characters-in-linux-environment-variable-names/2821183#2821183). We support both unix and windows-style newlines (though only one type per file).
+
+Multiline variables are fine as long as they're surrounded by `"`
 
 All of the following are valid lines:
 
@@ -42,15 +44,24 @@ All of the following are valid lines:
 NODE_ENV= test
 source =local
 job = programming
+
 DB_STRING=mongo://blah@thing.mongo.thing.com:4567
-export THING
+export THING=3
+multiline="this can have
+as many lines
+# comments are still ignored
+as it wants"
 ```
 
 The following are all invalid lines:
 
 ```
  # comment with leading space
+ bad_key=nono
 key with-dash=andspace
+multiline='bad because
+it uses
+single quotes'
 ```
 
 ## Development

@@ -47,7 +47,8 @@ function defaultFS () {
     'windows': fixtures.windows_file,
     'other.txt': fixtures.local_file,
     'dnt': mock.file({mode: '000'}),
-    'bad': fixtures.bad_file
+    'bad': fixtures.bad_file,
+    'multiline': fixtures.multiline_file
   }
 }
 
@@ -100,11 +101,17 @@ const fixtures = {
     SOURCE: 'remote',
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
   },
+  multiline_obj: {
+    SECRET_KEY: '-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\nmorerandomtext\n-----END RSA PRIVATE KEY-----',
+    OTHER_KEY: 'blahblah',
+    ITS_GONNA_BE: 'legend wait for it...\ndary'
+  },
 
   bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
-  local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\n',
+  local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING="mongo://blah@thing.mongo.thing.com:4567"\n',
   windows_file: '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
+  multiline_file: 'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
 
   // test both quote styles
   sample_file: header + 'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
@@ -150,6 +157,10 @@ describe('Reading', () => {
 
   it('should read a local windows file', () => {
     return expect(file.read('windows')).to.eventually.deep.equal(fixtures.local_obj)
+  })
+
+  it('should read multiline values (and multi-multiline values)', () => {
+    return expect(file.read('multiline')).to.eventually.deep.equal(fixtures.multiline_obj)
   })
 
   it('should warn about duplicate keys', () => {

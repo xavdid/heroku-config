@@ -18,28 +18,67 @@ function objToFileFormat (obj) {
   return res
 }
 
+function defaultMulti () {
+  return {
+    key: '',
+    values: []
+  }
+}
+
+// checks whether this is the end of a multi
+function isEnding (s) {
+  return s[s.length - 1] === '"'
+}
+
+function isSkippable (s) {
+  return s[0] === '#' || s === ''
+}
+
+function unquote (s) {
+  return s.replace(/^"|"$/g, '')
+}
+
 function objFromFileFormat (s, quiet) {
   let res = {}
   let splitter
+  let multi = defaultMulti()
+
   // could also use process.platform but this feels more reliable
   if (s.match(/\r\n/)) {
     splitter = '\r\n'
   } else {
     splitter = '\n'
   }
-  const data = s.split(splitter)
-  data.forEach(function (v) {
-    // optional leading export, optional spaces around =
-    let config = v.match(/^(export)? ?([A-Za-z0-9_]+) ?= ?"?(.*)$/)
-    if (config) {
-      let key = config[2]
-      // strip off trailing " if it's there
-      let value = config[3].replace(/"$/, '')
-      if (res[key] && !quiet) { cli.warn(`WARN - "${key}" is in env file twice`) }
-      res[key] = value
+  const lines = s.split(splitter)
+
+  lines.forEach(function (line) {
+    if (isSkippable(line)) { return }
+
+    let maybeKVPair = line.match(/^(export)?\s?([A-Za-z0-9_]+)\s?=\s?(.*)$/)
+    if (maybeKVPair) {
+      // regular line
+      let key = maybeKVPair[2]
+      const quotedVal = maybeKVPair[3]
+
+      if (quotedVal[0] === '"' & !isEnding(quotedVal)) {
+        // start of multi
+        multi.key = key
+        multi.values.push(quotedVal)
+      } else {
+        if (res[key] && !quiet) { cli.warn(`[WARN]: "${key}" is in env file twice`) }
+        res[key] = unquote(quotedVal)
+      }
+    } else if (multi.key) {
+      // not a regular looking line, but we're in the middle of a multi
+      multi.values.push(line)
+      if (isEnding(line)) {
+        res[multi.key] = unquote(multi.values.join('\n'))
+        multi = defaultMulti()
+      }
     } else {
-      if (v[0] !== '#' && v !== '' && !quiet) {
-        cli.warn(`WARN - unable to parse line: ${v}`)
+      // borked
+      if (!quiet) {
+        cli.warn(`[WARN]: unable to parse line: ${line}`)
       }
     }
   })
@@ -62,7 +101,6 @@ module.exports = {
     return fs.readFile(fname, 'utf-8').then((data) => {
       return Promise.resolve(objFromFileFormat(data, quiet))
     }).catch(() => {
-      // cli.warn(`WARN - Unable to read from ${fname}`)
       // if it doesn't exist or we can't read, just start from scratch
       return Promise.resolve({})
     })
