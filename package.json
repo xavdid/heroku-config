@@ -4,7 +4,7 @@
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
-    "test": "standard && mocha test.js",
+    "test": "mocha test.js && standard",
     "pretest": "./bin/node_version_check",
     "preversion": "npm test",
     "postversion": "npm publish && git push && git push --tags"

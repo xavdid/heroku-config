@@ -22,19 +22,23 @@ got(url)
 
     const localVersion = process.version
 
-    let good = true
+    let code = 0
 
     if (herokuVersion !== testVersion) {
-      console.log(`!! Should be testing against ${herokuVersion}, not ${testVersion}. Update .travis.yml accordingly\n`)
-      good = false
+      console.error(`!! Should be testing against ${herokuVersion}, not ${testVersion}. Update .travis.yml accordingly\n`)
+      code = 1
     }
 
     if (semver.lt(localVersion, '6.0.0')) {
-      console.log('!! Heroku CLI requires node >= v6.0.0\n')
-      good = false
+      console.error('!! Heroku CLI requires node >= v6.0.0\n')
+      code = 1
     }
 
-    good ? process.exit(0) : process.exit(1)
+    if (localVersion !== testVersion) {
+      console.warn(`[WARN]: Current node version (${localVersion}) does not match prod node version (${herokuVersion})`)
+    }
+
+    process.exit(code)
   })
   .catch(err => {
     console.log(err)
