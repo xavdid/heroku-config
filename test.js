@@ -107,7 +107,7 @@ const fixtures = {
     ITS_GONNA_BE: 'legend wait for it...\ndary'
   },
   expanded_obj: {
-    name: 'david',
+    'na-me': 'david',
     'integration.url': 'https://google.com'
   },
 
@@ -115,7 +115,7 @@ const fixtures = {
   windows_file: '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
   multiline_file: 'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
-  expanded_file: 'name=david\nintegration.url=https://google.com\n',
+  expanded_file: 'na-me=david\nintegration.url=https://google.com\n',
 
   // test both quote styles
   sample_file: header + 'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',

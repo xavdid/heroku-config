@@ -54,7 +54,7 @@ function objFromFileFormat (s, flags = {}) {
   let expandedVars = ''
   if (flags.expanded) {
     // this is a regex string that shows non-standard values that are accepted
-    expandedVars = String.raw`\.`
+    expandedVars = String.raw`\.-`
   }
 
   const lineRegex = new RegExp(String.raw`^(export)?\s?([a-zA-Z_][a-zA-Z0-9_${expandedVars}]*)\s?=\s?(.*)$`)
@@ -96,8 +96,7 @@ function objFromFileFormat (s, flags = {}) {
 
 function question (val) {
   return [
-    `Your config has a value called "${val}", which is usually pulled in error.`,
-    'Should we:',
+    `Your config has a value called "${val}", which is usually pulled in error. Should we:`,
     '[d]elete | [i]gnore | [a]lways (delete) | [n]ever (delete)',
     'that key/value pair for this app?'
   ].join('\n\n')

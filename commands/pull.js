@@ -32,8 +32,7 @@ function * pull (context, heroku) {
 
 module.exports = (() => {
   let flags = [
-    ...require('../util/flags'),
-    { name: 'expanded', char: 'e', description: 'allow non-standard characters in variable names' }
+    ...require('../util/flags')
   ]
 
   return {
