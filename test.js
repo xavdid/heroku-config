@@ -32,7 +32,7 @@ function fetchCMD (name) {
 
 // heroku-cli err output depends on terminal width, so we have to standardize
 function cleanStdErr (s) {
-  return s.replace(/\n|▸| {2,}/g, '')
+  return s.replace(/\n|▸| {2,}/g, '').trim()
 }
 
 function setup () {
@@ -47,8 +47,8 @@ function defaultFS () {
     'windows': fixtures.windows_file,
     'other.txt': fixtures.local_file,
     'dnt': mock.file({mode: '000'}),
-    'bad': fixtures.bad_file,
-    'multiline': fixtures.multiline_file
+    'multiline': fixtures.multiline_file,
+    'expanded': fixtures.expanded_file
   }
 }
 
@@ -106,12 +106,16 @@ const fixtures = {
     OTHER_KEY: 'blahblah',
     ITS_GONNA_BE: 'legend wait for it...\ndary'
   },
+  expanded_obj: {
+    name: 'david',
+    'integration.url': 'https://google.com'
+  },
 
-  bad_file: '# comment\n # leading comment\nSOURCE x = ASDF\n',
   local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING="mongo://blah@thing.mongo.thing.com:4567"\n',
   windows_file: '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
   merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
   multiline_file: 'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
+  expanded_file: 'name=david\nintegration.url=https://google.com\n',
 
   // test both quote styles
   sample_file: header + 'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
@@ -170,15 +174,19 @@ describe('Reading', () => {
   })
 
   it('should skip warnings in quiet mode', () => {
-    return file.read('.env', true).then(() => {
+    return file.read('.env', { quiet: true }).then(() => {
       expect(cli.stderr).to.equal('')
     })
   })
 
   it('should warn when it hits a malformed line', () => {
-    return file.read('bad').then(() => {
+    return file.read('expanded').then(() => {
       expect(cleanStdErr(cli.stderr)).to.include('unable to parse line')
     })
+  })
+
+  it('should read expanded files', () => {
+    return expect(file.read('expanded', { expanded: true })).to.eventually.deep.equal(fixtures.expanded_obj)
   })
 
   afterEach(() => {
@@ -208,7 +216,7 @@ describe('Writing', () => {
 
   it('should successfully write a file, quietly', () => {
     // need to pass all params if i'm passing quiet mode
-    return file.write(fixtures.sample_obj, fname, true).then(() => {
+    return file.write(fixtures.sample_obj, fname, { quiet: true }).then(() => {
       const res = fs.readFileSync(fname, 'utf-8')
       expect(res).to.equal(fixtures.clean_sample_file)
       expect(cli.stdout).to.equal('')

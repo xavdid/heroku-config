@@ -21,7 +21,7 @@ function * push (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
-    local: file.read(fname, context.flags.quiet)
+    local: file.read(fname, context.flags)
   }
 
   let res = merge(config.local, config.remote, context.flags)
@@ -37,9 +37,11 @@ function * push (context, heroku) {
 }
 
 module.exports = (() => {
-  let flags = []
-  flags.push(require('../util/flags'))
-  flags.push({ name: 'clean', char: 'c', description: 'delete all destination vars that do not appear in local file' })
+  let flags = [
+    ...require('../util/flags'),
+    { name: 'clean', char: 'c', description: 'delete all destination vars that do not appear in local file' }
+  ]
+
   return {
     topic: 'config',
     command: 'push',
@@ -48,6 +50,6 @@ module.exports = (() => {
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(push)),
-    flags: _.flatten(flags)
+    flags: flags
   }
 })()

@@ -38,7 +38,7 @@ function unquote (s) {
   return s.replace(/^"|"$/g, '')
 }
 
-function objFromFileFormat (s, quiet) {
+function objFromFileFormat (s, flags = {}) {
   let res = {}
   let splitter
   let multi = defaultMulti()
@@ -51,10 +51,18 @@ function objFromFileFormat (s, quiet) {
   }
   const lines = s.split(splitter)
 
+  let expandedVars = ''
+  if (flags.expanded) {
+    // this is a regex string that shows non-standard values that are accepted
+    expandedVars = String.raw`\.`
+  }
+
+  const lineRegex = new RegExp(String.raw`^(export)?\s?([a-zA-Z_][a-zA-Z0-9_${expandedVars}]*)\s?=\s?(.*)$`)
+
   lines.forEach(function (line) {
     if (isSkippable(line)) { return }
 
-    let maybeKVPair = line.match(/^(export)?\s?([A-Za-z0-9_]+)\s?=\s?(.*)$/)
+    let maybeKVPair = line.match(lineRegex)
     if (maybeKVPair) {
       // regular line
       let key = maybeKVPair[2]
@@ -65,7 +73,7 @@ function objFromFileFormat (s, quiet) {
         multi.key = key
         multi.values.push(quotedVal)
       } else {
-        if (res[key] && !quiet) { cli.warn(`[WARN]: "${key}" is in env file twice`) }
+        if (res[key] && !flags.quiet) { cli.warn(`[WARN]: "${key}" is in env file twice`) }
         res[key] = unquote(quotedVal)
       }
     } else if (multi.key) {
@@ -77,7 +85,7 @@ function objFromFileFormat (s, quiet) {
       }
     } else {
       // borked
-      if (!quiet) {
+      if (!flags.quiet) {
         cli.warn(`[WARN]: unable to parse line: ${line}`)
       }
     }
@@ -96,19 +104,17 @@ function question (val) {
 }
 
 module.exports = {
-  read: (fname, quiet) => {
-    fname = fname || DEFAULT_FNAME
+  read: (fname = DEFAULT_FNAME, flags) => {
     return fs.readFile(fname, 'utf-8').then((data) => {
-      return Promise.resolve(objFromFileFormat(data, quiet))
+      return Promise.resolve(objFromFileFormat(data, flags))
     }).catch(() => {
       // if it doesn't exist or we can't read, just start from scratch
       return Promise.resolve({})
     })
   },
-  write: (obj, fname, quiet) => {
-    fname = fname || DEFAULT_FNAME
+  write: (obj, fname = DEFAULT_FNAME, flags = {}) => {
     return fs.writeFile(fname, objToFileFormat(obj)).then(() => {
-      if (!quiet) {
+      if (!flags.quiet) {
         cli.log(`Successfully wrote config to "${fname}"!`)
       }
     }).catch((err) => {

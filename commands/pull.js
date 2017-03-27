@@ -11,7 +11,7 @@ function * pull (context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
-    local: file.read(fname, context.flags.quiet)
+    local: file.read(fname, context.flags)
   }
   let res = merge(config.remote, config.local, context.flags)
 
@@ -24,19 +24,26 @@ function * pull (context, heroku) {
 
   try {
     // write handles success/fail message
-    yield file.write(res, fname, context.flags.quiet)
+    yield file.write(res, fname, context.flags)
   } catch (err) {
     cli.exit(1, err)
   }
 }
 
-module.exports = {
-  topic: 'config',
-  command: 'pull',
-  description: 'pull env variables from heroku',
-  help: 'Write remote config vars into file FILE, favoring existing local configs in case of collision',
-  needsApp: true,
-  needsAuth: true,
-  run: cli.command(co.wrap(pull)),
-  flags: require('../util/flags')
-}
+module.exports = (() => {
+  let flags = [
+    ...require('../util/flags'),
+    { name: 'expanded', char: 'e', description: 'allow non-standard characters in variable names' }
+  ]
+
+  return {
+    topic: 'config',
+    command: 'pull',
+    description: 'pull env variables from heroku',
+    help: 'Write remote config vars into file FILE, favoring existing local configs in case of collision',
+    needsApp: true,
+    needsAuth: true,
+    run: cli.command(co.wrap(pull)),
+    flags: flags
+  }
+})()
