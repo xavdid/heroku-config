@@ -11,13 +11,15 @@ const path = require('path')
 const got = require('got')
 const semver = require('semver')
 
-const url = 'https://raw.githubusercontent.com/heroku/cli/master/Makefile'
+const url = 'https://raw.githubusercontent.com/heroku/cli/master/package.json'
 
-got(url)
+got(url, { json: true })
   .then(resp => {
-    const herokuVersion = resp.body.match(/NODE_VERSION=(\d+\.\d+\.\d+)/)[1]
+    const herokuVersion = resp.body['cli-engine'].node
 
-    const settings = yaml.safeLoad(fs.readFileSync(path.join(__dirname, '..', '.travis.yml'), 'utf8'))
+    const settings = yaml.safeLoad(
+      fs.readFileSync(path.join(__dirname, '..', '.travis.yml'), 'utf8')
+    )
     const testVersion = settings.node_js[0]
 
     const localVersion = process.version
@@ -25,7 +27,11 @@ got(url)
     let code = 0
 
     if (herokuVersion !== testVersion) {
-      console.error(`!! Should be testing against ${herokuVersion}, not ${testVersion}. Update .travis.yml accordingly\n`)
+      console.error(
+        `!! Should be testing against ${herokuVersion}, not ${
+          testVersion
+        }. Update .travis.yml accordingly\n`
+      )
       code = 1
     }
 
@@ -35,7 +41,11 @@ got(url)
     }
 
     if (localVersion !== testVersion) {
-      console.warn(`[WARN]: Current node version (${localVersion}) does not match prod node version (${herokuVersion})`)
+      console.warn(
+        `[WARN]: Current node version (${
+          localVersion
+        }) does not match prod node version (${herokuVersion})`
+      )
     }
 
     process.exit(code)

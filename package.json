@@ -13,10 +13,9 @@
     "type": "git",
     "url": "git+https://github.com/xavdidtheshadow/heroku-config.git"
   },
-  "keywords": [
-    "heroku-plugin"
-  ],
-  "author": "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
+  "keywords": ["heroku-plugin"],
+  "author":
+    "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/xavdidtheshadow/heroku-config/issues"
@@ -38,5 +37,9 @@
     "rewire": "^2.5.1",
     "semver": "^5.3.0",
     "standard": "^9.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true
   }
 }
