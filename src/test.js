@@ -13,20 +13,21 @@ const rewire = require('rewire')
 const fs = require('fs')
 const path = require('path')
 
+const co = require('co')
 const stdin = require('mock-stdin').stdin()
 
 // heroku stuff
 const cli = require('heroku-cli-util')
-const commands = require('./lib/index').commands
+const commands = require('./index').commands
 
 // things I'm testing
-const merge = require('./lib/util/merge').default
-const file = rewire('./lib/util/file')
+const merge = require('./util/merge')
+const file = rewire('./util/file')
 const header = file.__get__('header')
 
 // HELPERS
 function fetchCMD (name) {
-  return commands.find(c => c.command === name)
+  return commands.find((c) => c.command === name)
 }
 
 // heroku-cli err output depends on terminal width, so we have to standardize
@@ -43,11 +44,11 @@ function defaultFS () {
   // this is so I can setup without affecting other tests
   return {
     '.env': fixtures.local_file,
-    windows: fixtures.windows_file,
+    'windows': fixtures.windows_file,
     'other.txt': fixtures.local_file,
-    dnt: mock.file({ mode: '000' }),
-    multiline: fixtures.multiline_file,
-    expanded: fixtures.expanded_file
+    'dnt': mock.file({mode: '000'}),
+    'multiline': fixtures.multiline_file,
+    'expanded': fixtures.expanded_file
   }
 }
 
@@ -101,8 +102,7 @@ const fixtures = {
     DB_STRING: 'mongo://blah@thing.mongo.thing.com:4567'
   },
   multiline_obj: {
-    SECRET_KEY:
-      '-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\nmorerandomtext\n-----END RSA PRIVATE KEY-----',
+    SECRET_KEY: '-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\nmorerandomtext\n-----END RSA PRIVATE KEY-----',
     OTHER_KEY: 'blahblah',
     ITS_GONNA_BE: 'legend wait for it...\ndary'
   },
@@ -111,21 +111,14 @@ const fixtures = {
     'integration.url': 'https://google.com'
   },
 
-  local_file:
-    '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING="mongo://blah@thing.mongo.thing.com:4567"\n',
-  windows_file:
-    '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
-  merged_local_file:
-    header +
-    'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
-  multiline_file:
-    'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
+  local_file: '#comment\nNODE_ENV= test\nSOURCE =local\nSOURCE = local\nDB_STRING="mongo://blah@thing.mongo.thing.com:4567"\n',
+  windows_file: '#comment\r\nNODE_ENV= test\r\nSOURCE =local\r\nSOURCE = local\r\nDB_STRING=mongo://blah@thing.mongo.thing.com:4567\r\n',
+  merged_local_file: header + 'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
+  multiline_file: 'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
   expanded_file: 'na-me=david\nintegration.url=https://google.com\n',
 
   // test both quote styles
-  sample_file:
-    header +
-    'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
+  sample_file: header + 'export PIZZA="Abo\'s"\nNAME="david"\n\n#this is a comment!\nCITY=boulder\n\n\n',
   clean_sample_file: header + 'CITY="boulder"\nNAME="david"\nPIZZA="Abo\'s"\n',
   sample_obj: { NAME: 'david', CITY: 'boulder', PIZZA: "Abo's" },
   settings_obj_true: JSON.stringify({ blah: true }),
@@ -137,26 +130,18 @@ setup()
 
 describe('Merging', () => {
   it('should overwrite local with remote', () => {
-    expect(merge(fixtures.local_obj, fixtures.remote_obj, {})).to.deep.equal(
-      fixtures.remote_win_obj
-    )
+    expect(merge(fixtures.local_obj, fixtures.remote_obj, {})).to.deep.equal(fixtures.remote_win_obj)
   })
   it('should overwrite remote with local', () => {
-    expect(merge(fixtures.remote_obj, fixtures.local_obj, {})).to.deep.equal(
-      fixtures.local_win_obj
-    )
+    expect(merge(fixtures.remote_obj, fixtures.local_obj, {})).to.deep.equal(fixtures.local_win_obj)
   })
 
   it('should overwrite local with remote w/override', () => {
-    expect(
-      merge(fixtures.remote_obj, fixtures.local_obj, { overwrite: true })
-    ).to.deep.equal(fixtures.remote_win_obj)
+    expect(merge(fixtures.remote_obj, fixtures.local_obj, {overwrite: true})).to.deep.equal(fixtures.remote_win_obj)
   })
 
   it('should overwrite remote with local w/override', () => {
-    expect(
-      merge(fixtures.local_obj, fixtures.remote_obj, { overwrite: true })
-    ).to.deep.equal(fixtures.local_win_obj)
+    expect(merge(fixtures.local_obj, fixtures.remote_obj, {overwrite: true})).to.deep.equal(fixtures.local_win_obj)
   })
 })
 
@@ -171,28 +156,20 @@ describe('Reading', () => {
   })
 
   it('should read a local file', () => {
-    return expect(file.read('.env')).to.eventually.deep.equal(
-      fixtures.local_obj
-    )
+    return expect(file.read('.env')).to.eventually.deep.equal(fixtures.local_obj)
   })
 
   it('should read a local windows file', () => {
-    return expect(file.read('windows')).to.eventually.deep.equal(
-      fixtures.local_obj
-    )
+    return expect(file.read('windows')).to.eventually.deep.equal(fixtures.local_obj)
   })
 
   it('should read multiline values (and multi-multiline values)', () => {
-    return expect(file.read('multiline')).to.eventually.deep.equal(
-      fixtures.multiline_obj
-    )
+    return expect(file.read('multiline')).to.eventually.deep.equal(fixtures.multiline_obj)
   })
 
   it('should warn about duplicate keys', () => {
     return file.read('.env').then(() => {
-      expect(cleanStdErr(cli.stderr)).to.include(
-        '"SOURCE" is in env file twice'
-      )
+      expect(cleanStdErr(cli.stderr)).to.include('"SOURCE" is in env file twice')
     })
   })
 
@@ -209,9 +186,7 @@ describe('Reading', () => {
   })
 
   it('should read expanded files', () => {
-    return expect(
-      file.read('expanded', { expanded: true })
-    ).to.eventually.deep.equal(fixtures.expanded_obj)
+    return expect(file.read('expanded', { expanded: true })).to.eventually.deep.equal(fixtures.expanded_obj)
   })
 
   afterEach(() => {
@@ -256,15 +231,11 @@ describe('Writing', () => {
 
 describe('Transforming', () => {
   it('should decode files correctly', () => {
-    expect(
-      file.__get__('objFromFileFormat')(fixtures.sample_file)
-    ).to.deep.equal(fixtures.sample_obj)
+    expect(file.__get__('objFromFileFormat')(fixtures.sample_file)).to.deep.equal(fixtures.sample_obj)
   })
 
   it('should encode file correctly', () => {
-    expect(file.__get__('objToFileFormat')(fixtures.sample_obj)).to.equal(
-      fixtures.clean_sample_file
-    )
+    expect(file.__get__('objToFileFormat')(fixtures.sample_obj)).to.equal(fixtures.clean_sample_file)
   })
 })
 
@@ -274,33 +245,17 @@ describe('Checking for Prod', () => {
   })
 
   it('should delete prod when prompted', () => {
-    console.log('sending d')
     mockInput('d')
-    return file
-      .shouldDeleteProd({ app: 'test' })
-      .then(shouldDelete => {
-        console.log('in delete return', shouldDelete)
-        expect(shouldDelete).to.equal(true)
-      })
-      .catch(err => {
-        console.log('in catch')
-        console.log(err)
-      })
+    return co(file.shouldDeleteProd({ app: 'test' })).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(true)
+    })
   })
 
   it('should ignore prod when prompted', () => {
-    console.log('sending i')
     mockInput('i')
-    return file
-      .shouldDeleteProd({ app: 'test' })
-      .then(shouldDelete => {
-        console.log('in ignore return', shouldDelete)
-        expect(shouldDelete).to.equal(false)
-      })
-      .catch(err => {
-        console.log('in i catch')
-        console.log(err)
-      })
+    return co(file.shouldDeleteProd({ app: 'test' })).then((shouldDelete) => {
+      expect(shouldDelete).to.equal(false)
+    })
   })
 
   it('should read a true settings file if able', () => {
@@ -308,7 +263,7 @@ describe('Checking for Prod', () => {
     mock()
     mockSettingsFile(testMode)
 
-    return file.shouldDeleteProd({ app: 'blah' }).then(shouldDelete => {
+    return co(file.shouldDeleteProd({ app: 'blah' })).then((shouldDelete) => {
       expect(shouldDelete).to.equal(testMode)
     })
   })
@@ -318,7 +273,7 @@ describe('Checking for Prod', () => {
     mock()
     mockSettingsFile(testMode)
 
-    return file.shouldDeleteProd({ app: 'blah' }).then(shouldDelete => {
+    return co(file.shouldDeleteProd({ app: 'blah' })).then((shouldDelete) => {
       expect(shouldDelete).to.equal(testMode)
     })
   })
@@ -346,12 +301,10 @@ describe('Pushing', () => {
       .patch('/apps/test/config-vars', fixtures.remote_win_obj)
       .reply(200, fixtures.remote_win_obj)
 
-    return cmd
-      .run({ flags: { file: fname, quiet: true }, app: 'test' })
-      .then(() => {
-        expect(nock.isDone()).to.equal(true)
-        expect(cli.stdout).to.equal('')
-      })
+    return cmd.run({ flags: { file: fname, quiet: true }, app: 'test' }).then(() => {
+      expect(nock.isDone()).to.equal(true)
+      expect(cli.stdout).to.equal('')
+    })
   })
 
   it('should correctly push null values for unused configs', () => {

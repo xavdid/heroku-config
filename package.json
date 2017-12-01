@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test.js && standard",
-    "pretest": "./bin/node_version_check",
+    "x-pretest": "./bin/node_version_check",
     "preversion": "npm test",
     "postversion": "npm publish && git push && git push --tags"
   },
@@ -13,10 +13,9 @@
     "type": "git",
     "url": "git+https://github.com/xavdidtheshadow/heroku-config.git"
   },
-  "keywords": [
-    "heroku-plugin"
-  ],
-  "author": "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
+  "keywords": ["heroku-plugin"],
+  "author":
+    "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/xavdidtheshadow/heroku-config/issues"
