@@ -1,6 +1,6 @@
 {
   "name": "heroku-config",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
@@ -12,9 +12,10 @@
     "type": "git",
     "url": "git+https://github.com/xavdid/heroku-config.git"
   },
-  "keywords": ["heroku-plugin"],
-  "author":
-    "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
+  "keywords": [
+    "heroku-plugin"
+  ],
+  "author": "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/xavdid/heroku-config/issues"
