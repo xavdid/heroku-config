@@ -7,7 +7,8 @@ const _ = require('lodash')
 const merge = require('../util/merge')
 const file = require('../util/file')
 
-function * pull (context, heroku) {
+// eslint-disable-next-line generator-star-spacing, space-before-function-paren
+function* pull(context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
@@ -32,14 +33,20 @@ function * pull (context, heroku) {
 
 module.exports = (() => {
   let flags = [
-    ...require('../util/flags')
+    ...require('../util/flags'),
+    {
+      name: 'unquoted',
+      char: 'u',
+      description: 'write configs locally without quotes'
+    }
   ]
 
   return {
     topic: 'config',
     command: 'pull',
     description: 'pull env variables from heroku',
-    help: 'Write remote config vars into file FILE, favoring existing local configs in case of collision',
+    help:
+      'Write remote config vars into file FILE, favoring existing local configs in case of collision',
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(pull)),

@@ -4,23 +4,22 @@
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test.js && standard",
-    "pretest": "./bin/node_version_check",
+    "test": "mocha && standard",
     "preversion": "npm test",
     "postversion": "npm publish && git push && git push --tags"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xavdidtheshadow/heroku-config.git"
+    "url": "git+https://github.com/xavdid/heroku-config.git"
   },
   "keywords": ["heroku-plugin"],
   "author":
     "David Brownman <beamneocube@gmail.com> (https://davidbrownman.com)",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/xavdidtheshadow/heroku-config/issues"
+    "url": "https://github.com/xavdid/heroku-config/issues"
   },
-  "homepage": "https://github.com/xavdidtheshadow/heroku-config#readme",
+  "homepage": "https://github.com/xavdid/heroku-config#readme",
   "dependencies": {
     "heroku-cli-util": "6.1.15",
     "lodash": "4.17.4",

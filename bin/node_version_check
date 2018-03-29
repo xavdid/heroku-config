@@ -1,6 +1,8 @@
 #! /usr/bin/env node
 
 // verifies that we've got the correct node version
+// they just run on a "recent version" now, so we don't need this
+//     "pretest": "./bin/node_version_check",
 
 'use strict'
 
@@ -28,9 +30,7 @@ got(url, { json: true })
 
     if (herokuVersion !== testVersion) {
       console.error(
-        `!! Should be testing against ${herokuVersion}, not ${
-          testVersion
-        }. Update .travis.yml accordingly\n`
+        `!! Should be testing against ${herokuVersion}, not ${testVersion}. Update .travis.yml accordingly\n`
       )
       code = 1
     }
@@ -42,9 +42,7 @@ got(url, { json: true })
 
     if (localVersion !== testVersion) {
       console.warn(
-        `[WARN]: Current node version (${
-          localVersion
-        }) does not match prod node version (${herokuVersion})`
+        `[WARN]: Current node version (${localVersion}) does not match prod node version (${herokuVersion})`
       )
     }
 

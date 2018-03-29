@@ -6,7 +6,8 @@ const merge = require('../util/merge')
 const file = require('../util/file')
 const _ = require('lodash')
 
-function * patchConfig (context, heroku, payload, success) {
+// eslint-disable-next-line generator-star-spacing, space-before-function-paren
+function* patchConfig(context, heroku, payload, success) {
   try {
     yield heroku.patch(`/apps/${context.app}/config-vars`, { body: payload })
     if (!context.flags.quiet) {
@@ -17,7 +18,8 @@ function * patchConfig (context, heroku, payload, success) {
   }
 }
 
-function * push (context, heroku) {
+// eslint-disable-next-line generator-star-spacing, space-before-function-paren
+function* push(context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
   let config = yield {
     remote: heroku.get(`/apps/${context.app}/config-vars`),
@@ -25,28 +27,47 @@ function * push (context, heroku) {
   }
 
   let res = merge(config.local, config.remote, context.flags)
-  yield patchConfig(context, heroku, res, 'Successfully wrote settings to Heroku!')
+  yield patchConfig(
+    context,
+    heroku,
+    res,
+    'Successfully wrote settings to Heroku!'
+  )
 
   if (context.flags.clean) {
     // grab keys that weren't in local
-    let keysToDelete = _.difference(Object.keys(config.remote), Object.keys(config.local))
+    let keysToDelete = _.difference(
+      Object.keys(config.remote),
+      Object.keys(config.local)
+    )
     let nullKeys = _.fromPairs(keysToDelete.map(k => [k, null]))
 
-    yield patchConfig(context, heroku, nullKeys, 'Successfully deleted unused settings from Heroku!')
+    yield patchConfig(
+      context,
+      heroku,
+      nullKeys,
+      'Successfully deleted unused settings from Heroku!'
+    )
   }
 }
 
 module.exports = (() => {
   let flags = [
     ...require('../util/flags'),
-    { name: 'clean', char: 'c', description: 'delete all destination vars that do not appear in local file' }
+    {
+      name: 'clean',
+      char: 'c',
+      description:
+        'delete all destination vars that do not appear in local file'
+    }
   ]
 
   return {
     topic: 'config',
     command: 'push',
     description: 'push env variables to heroku',
-    help: 'Write local config vars into heroku, favoring existing remote configs in case of collision',
+    help:
+      'Write local config vars into heroku, favoring existing remote configs in case of collision',
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(push)),

@@ -1,7 +1,7 @@
 language: node_js
-# version specified by heroku
-# https://github.com/heroku/cli/blob/master/Makefile
+
 node_js:
-  - "6.9.5"
+  # the last version where mock-fs@3 works, which I need
+  - "7"
 notifications:
   on_failure: change

@@ -7,18 +7,22 @@ const cli = require('heroku-cli-util')
 const DEFAULT_FNAME = '.env'
 const header = '# this file was created automatically by heroku-config\n\n'
 
-function objToFileFormat (obj) {
+const objToFileFormat = (obj, flags = {}) => {
   let res = `${header}`
   // always write keys alphabetically
   // makes file writing deterministic
   let keys = Object.keys(obj).sort()
-  keys.forEach((key) => {
-    res += (`${key}="${obj[key]}"\n`)
+  keys.forEach(key => {
+    if (flags.unquoted) {
+      res += `${key}=${obj[key]}\n`
+    } else {
+      res += `${key}="${obj[key]}"\n`
+    }
   })
   return res
 }
 
-function defaultMulti () {
+const defaultMulti = () => {
   return {
     key: '',
     values: []
@@ -26,19 +30,19 @@ function defaultMulti () {
 }
 
 // checks whether this is the end of a multi
-function isEnding (s) {
+const isEnding = s => {
   return s[s.length - 1] === '"'
 }
 
-function isSkippable (s) {
+const isSkippable = s => {
   return s[0] === '#' || s === ''
 }
 
-function unquote (s) {
+const unquote = s => {
   return s.replace(/^"|"$/g, '')
 }
 
-function objFromFileFormat (s, flags = {}) {
+const objFromFileFormat = (s, flags = {}) => {
   let res = {}
   let splitter
   let multi = defaultMulti()
@@ -57,10 +61,14 @@ function objFromFileFormat (s, flags = {}) {
     expandedVars = String.raw`\.-`
   }
 
-  const lineRegex = new RegExp(String.raw`^(export)?\s?([a-zA-Z_][a-zA-Z0-9_${expandedVars}]*)\s?=\s?(.*)$`)
+  const lineRegex = new RegExp(
+    String.raw`^(export)?\s?([a-zA-Z_][a-zA-Z0-9_${expandedVars}]*)\s?=\s?(.*)$`
+  )
 
-  lines.forEach(function (line) {
-    if (isSkippable(line)) { return }
+  lines.forEach(line => {
+    if (isSkippable(line)) {
+      return
+    }
 
     let maybeKVPair = line.match(lineRegex)
     if (maybeKVPair) {
@@ -68,12 +76,14 @@ function objFromFileFormat (s, flags = {}) {
       let key = maybeKVPair[2]
       const quotedVal = maybeKVPair[3]
 
-      if (quotedVal[0] === '"' & !isEnding(quotedVal)) {
+      if ((quotedVal[0] === '"') & !isEnding(quotedVal)) {
         // start of multi
         multi.key = key
         multi.values.push(quotedVal)
       } else {
-        if (res[key] && !flags.quiet) { cli.warn(`[WARN]: "${key}" is in env file twice`) }
+        if (res[key] && !flags.quiet) {
+          cli.warn(`[WARN]: "${key}" is in env file twice`)
+        }
         res[key] = unquote(quotedVal)
       }
     } else if (multi.key) {
@@ -94,7 +104,7 @@ function objFromFileFormat (s, flags = {}) {
   return res
 }
 
-function question (val) {
+const question = val => {
   return [
     `Your config has a value called "${val}", which is usually pulled in error. Should we:`,
     '[d]elete | [i]gnore | [a]lways (delete) | [n]ever (delete)',
@@ -104,26 +114,38 @@ function question (val) {
 
 module.exports = {
   read: (fname = DEFAULT_FNAME, flags) => {
-    return fs.readFile(fname, 'utf-8').then((data) => {
-      return Promise.resolve(objFromFileFormat(data, flags))
-    }).catch(() => {
-      // if it doesn't exist or we can't read, just start from scratch
-      return Promise.resolve({})
-    })
+    return fs
+      .readFile(fname, 'utf-8')
+      .then(data => {
+        return Promise.resolve(objFromFileFormat(data, flags))
+      })
+      .catch(() => {
+        // if it doesn't exist or we can't read, just start from scratch
+        return Promise.resolve({})
+      })
   },
   write: (obj, fname = DEFAULT_FNAME, flags = {}) => {
-    return fs.writeFile(fname, objToFileFormat(obj)).then(() => {
-      if (!flags.quiet) {
-        cli.log(`Successfully wrote config to "${fname}"!`)
-      }
-    }).catch((err) => {
-      return Promise.reject(new Error(`Error writing to file "${fname}" (${err.message})`))
-    })
+    return fs
+      .writeFile(fname, objToFileFormat(obj, flags))
+      .then(() => {
+        if (!flags.quiet) {
+          cli.log(`Successfully wrote config to "${fname}"!`)
+        }
+      })
+      .catch(err => {
+        return Promise.reject(
+          new Error(`Error writing to file "${fname}" (${err.message})`)
+        )
+      })
   },
-  shouldDeleteProd: function * (context, val) {
+  // eslint-disable-next-line generator-star-spacing
+  shouldDeleteProd: function*(context, val) {
     const path = require('path')
 
-    const settingsUrl = path.join(process.env.HOME, '.heroku_config_settings.json')
+    const settingsUrl = path.join(
+      process.env.HOME,
+      '.heroku_config_settings.json'
+    )
 
     let settings
     try {
