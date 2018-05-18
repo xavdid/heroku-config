@@ -17,7 +17,7 @@ const url = 'https://raw.githubusercontent.com/heroku/cli/master/package.json'
 
 got(url, { json: true })
   .then(resp => {
-    const herokuVersion = resp.body['cli-engine'].node
+    const herokuVersion = resp.body.oclif.update.node.version
 
     const settings = yaml.safeLoad(
       fs.readFileSync(path.join(__dirname, '..', '.travis.yml'), 'utf8')
@@ -30,19 +30,21 @@ got(url, { json: true })
 
     if (herokuVersion !== testVersion) {
       console.error(
-        `!! Should be testing against ${herokuVersion}, not ${testVersion}. Update .travis.yml accordingly\n`
+        `[ERROR] Should be testing against "v${herokuVersion}", not "v${testVersion}". Update .travis.yml accordingly\n`
       )
       code = 1
     }
 
-    if (semver.lt(localVersion, '6.0.0')) {
-      console.error('!! Heroku CLI requires node >= v6.0.0\n')
+    if (!semver.satisfies(localVersion, resp.body.engines.node)) {
+      console.error(
+        `[ERROR] Heroku CLI requires node ${resp.body.engines.node}\n`
+      )
       code = 1
     }
 
-    if (localVersion !== testVersion) {
+    if (semver.eq(localVersion, semver.coerce(testVersion))) {
       console.warn(
-        `[WARN]: Current node version (${localVersion}) does not match prod node version (${herokuVersion})`
+        `[WARN]: Current node version (${localVersion}) does not match prod node version (${herokuVersion})\n`
       )
     }
 
