@@ -1,7 +1,7 @@
 // interface for reading/writing to .env file
 'use strict'
 
-const fs = require('mz/fs')
+const fs = require('fs-extra')
 const cli = require('heroku-cli-util')
 
 const DEFAULT_FNAME = '.env'

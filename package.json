@@ -22,9 +22,9 @@
   },
   "homepage": "https://github.com/xavdid/heroku-config#readme",
   "dependencies": {
+    "fs-extra": "^6.0.1",
     "heroku-cli-util": "6.1.15",
-    "lodash": "4.17.4",
-    "mz": "2.6.0"
+    "lodash": "4.17.4"
   },
   "devDependencies": {
     "chai": "^3.5.0",
