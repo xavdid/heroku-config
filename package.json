@@ -37,6 +37,11 @@
     "semver": "^5.5.0",
     "standard": "^11.0.0"
   },
+  "files": [
+    "/index.js",
+    "/commands",
+    "/util"
+  ],
   "prettier": {
     "semi": false,
     "singleQuote": true
