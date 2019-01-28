@@ -3,6 +3,7 @@
 
 const fs = require('fs-extra')
 const cli = require('heroku-cli-util')
+const HOME_DIR = require('os').homedir()
 
 const DEFAULT_FNAME = '.env'
 const header = '# this file was created automatically by heroku-config\n\n'
@@ -142,10 +143,7 @@ module.exports = {
   shouldDeleteProd: function*(context, val) {
     const path = require('path')
 
-    const settingsUrl = path.join(
-      process.env.HOME,
-      '.heroku_config_settings.json'
-    )
+    const settingsUrl = path.join(HOME_DIR, '.heroku_config_settings.json')
 
     let settings
     try {
