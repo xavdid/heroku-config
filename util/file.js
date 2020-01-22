@@ -44,16 +44,11 @@ const unquote = s => {
 }
 
 const objFromFileFormat = (s, flags = {}) => {
-  let res = {}
-  let splitter
+  const res = {}
+  // could also use process.platform but this feels more reliable
+  const splitter = s.match(/\r\n/) ? '\r\n' : '\n'
   let multi = defaultMulti()
 
-  // could also use process.platform but this feels more reliable
-  if (s.match(/\r\n/)) {
-    splitter = '\r\n'
-  } else {
-    splitter = '\n'
-  }
   const lines = s.split(splitter)
 
   let expandedVars = ''
@@ -72,7 +67,14 @@ const objFromFileFormat = (s, flags = {}) => {
     }
 
     let maybeKVPair = line.match(lineRegex)
-    if (maybeKVPair) {
+    if (multi.key) {
+      // not a regular looking line, but we're in the middle of a multi
+      multi.values.push(line)
+      if (isEnding(line)) {
+        res[multi.key] = unquote(multi.values.join('\n'))
+        multi = defaultMulti()
+      }
+    } else if (maybeKVPair) {
       // regular line
       let key = maybeKVPair[2]
       const quotedVal = maybeKVPair[3]
@@ -86,13 +88,6 @@ const objFromFileFormat = (s, flags = {}) => {
           cli.warn(`[WARN]: "${key}" is in env file twice`)
         }
         res[key] = unquote(quotedVal)
-      }
-    } else if (multi.key) {
-      // not a regular looking line, but we're in the middle of a multi
-      multi.values.push(line)
-      if (isEnding(line)) {
-        res[multi.key] = unquote(multi.values.join('\n'))
-        multi = defaultMulti()
       }
     } else {
       // borked

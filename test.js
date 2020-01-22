@@ -48,6 +48,7 @@ const defaultFS = () => {
     'other.txt': fixtures.local_file,
     dnt: mock.file({ mode: '000' }),
     multiline: fixtures.multiline_file,
+    tricky_multiline: fixtures.tricky_multiline_file,
     expanded: fixtures.expanded_file
   }
 }
@@ -107,6 +108,12 @@ const fixtures = {
     OTHER_KEY: 'blahblah',
     ITS_GONNA_BE: 'legend wait for it...\ndary'
   },
+  tricky_multiline_obj: {
+    SECRET_KEY:
+      '-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\nmorerandomtext==\n-----END RSA PRIVATE KEY-----',
+    OTHER_KEY: 'blahblah',
+    ITS_GONNA_BE: 'legend wait for it...\ndary'
+  },
   expanded_obj: {
     'na-me': 'david',
     'integration.url': 'https://google.com'
@@ -121,6 +128,8 @@ const fixtures = {
     'DB_STRING="mongo://blah@thing.mongo.thing.com:4567"\nNAME="david"\nNODE_ENV="test"\nSOURCE="local"\n',
   multiline_file:
     'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
+  tricky_multiline_file:
+    'SECRET_KEY="-----BEGIN RSA PRIVATE KEY-----\nMIIrandomtext\n\nmorerandomtext==\n-----END RSA PRIVATE KEY-----"\nOTHER_KEY=blahblah\nITS_GONNA_BE="legend wait for it...\n# you better not be lactose intolerant cause it\'s\ndary"',
   expanded_file: 'na-me=david\nintegration.url=https://google.com\n',
 
   // test both quote styles
@@ -187,6 +196,12 @@ describe('Reading', () => {
   it('should read multiline values (and multi-multiline values)', () => {
     return expect(file.read('multiline')).to.eventually.deep.equal(
       fixtures.multiline_obj
+    )
+  })
+
+  it('should read multiline values (and multi-multiline values)', () => {
+    return expect(file.read('tricky_multiline')).to.eventually.deep.equal(
+      fixtures.tricky_multiline_obj
     )
   })
 
