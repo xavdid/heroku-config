@@ -73,8 +73,10 @@ module.exports = (() => {
     description: 'pull env variables from heroku',
     help:
       'Write remote config vars into file FILE, favoring existing local configs in case of collision',
-    // now technically optional, since it can be a pipeline
-    // needsApp: true,
+    // doesn't seem to be documented anywhere, but this works
+    // no clue where it plugs into the CLI now, but I found it here:
+    // https://github.com/heroku/cli-engine/blob/5004250bd03c0b38e6e33e69ee962a3b50274b20/src/plugins/legacy.ts#L169
+    wantsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(pull)),
     flags: flags
