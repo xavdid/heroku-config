@@ -10,8 +10,34 @@ const file = require('../util/file')
 // eslint-disable-next-line generator-star-spacing, space-before-function-paren
 function* pull(context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
+
+  const pipelineName = context.flags['pipeline-name']
+  const pipelineStage = context.flags['pipeline-stage']
+
+  if ((pipelineName || pipelineStage) && !(pipelineName && pipelineStage)) {
+    cli.exit(1, 'If you specify either `pipeline-name` or `pipeline-stage`, specify them both.')
+  }
+
+  let pullUrl
+
+  if (pipelineName){
+    let pipelineData
+    try {
+      pipelineData = yield heroku.get(`/pipelines/${pipelineName}`)
+    } catch (err) {
+      cli.error('problem fetching pipeline info')
+      cli.exit(1, String(err))
+    }
+    pullUrl = `/pipelines/${pipelineData.id}/stage/${pipelineStage}/config-vars`
+  } else {
+    if (!context.app){
+      cli.exit(1, 'Must specify --app parameter, or `--pipeline-name` and `--pipeline-stage``')
+    }
+    pullUrl = `/apps/${context.app}/config-vars`
+  }
+
   let config = yield {
-    remote: heroku.get(`/apps/${context.app}/config-vars`),
+    remote: heroku.get(pullUrl),
     local: file.read(fname, context.flags)
   }
   let res = merge(config.remote, config.local, context.flags)
@@ -47,7 +73,8 @@ module.exports = (() => {
     description: 'pull env variables from heroku',
     help:
       'Write remote config vars into file FILE, favoring existing local configs in case of collision',
-    needsApp: true,
+    // now technically optional, since it can be a pipeline
+    // needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(pull)),
     flags: flags
