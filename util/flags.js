@@ -41,7 +41,7 @@ module.exports = {
     }
     return true
   },
-  buildPullUrl: async (flags, cli) => {
+  buildPullUrl: async (flags, heroku, cli) => {
     const pipelineName = flags['pipeline-name']
     const pipelineStage = flags['pipeline-stage']
 
