@@ -41,9 +41,9 @@ module.exports = {
     }
     return true
   },
-  buildPullUrl: async (flags, heroku, cli) => {
-    const pipelineName = flags['pipeline-name']
-    const pipelineStage = flags['pipeline-stage']
+  buildPullUrl: async (context, heroku, cli) => {
+    const pipelineName = context.flags['pipeline-name']
+    const pipelineStage = context.flags['pipeline-stage']
 
     let pullUrl
 
@@ -60,7 +60,7 @@ module.exports = {
       if (!context.app) {
         cli.exit(
           1,
-          'Must specify --app parameter, or `--pipeline-name` and `--pipeline-stage``'
+          'Must specify `--app` parameter, or `--pipeline-name` and `--pipeline-stage`'
         )
       }
       pullUrl = `/apps/${context.app}/config-vars`

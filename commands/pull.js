@@ -16,7 +16,7 @@ function* pull(context, heroku) {
     cli.exit(1, 'If you specify either `pipeline-name` or `pipeline-stage`, specify them both.')
   }
 
-  const pullUrl = yield buildPullUrl(context.flags, heroku, cli)
+  const pullUrl = yield buildPullUrl(context, heroku, cli)
 
   let config = yield {
     remote: heroku.get(pullUrl),
