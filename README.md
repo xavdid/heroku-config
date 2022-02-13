@@ -24,8 +24,10 @@ You can install the package by running
 
 This package includes two commands:
 
-* `heroku config:pull`: Writes the contents of `heroku config` into a local file
-* `heroku config:push`: Writes the contents of a local file into `heroku config`
+- `heroku config:pull`: Writes the contents of `heroku config` into a local file
+- `heroku config:push`: Writes the contents of a local file into `heroku config`
+
+As of version 1.6.0, the `heroku-config` supports modifying pipeline config variables with the `--pipelie-name` and `--pipeline-stage` flags.
 
 Run `heroku help config:pull` and `heroku help config:push` to see a full list of flags.
 

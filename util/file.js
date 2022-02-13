@@ -6,7 +6,7 @@ const cli = require('heroku-cli-util')
 const HOME_DIR = require('os').homedir()
 
 const DEFAULT_FNAME = '.env'
-const header = '# this file was created automatically by heroku-config\n\n'
+const header = '# this file was created automatically by https://github.com/xavdid/heroku-config/\n\n'
 
 const objToFileFormat = (obj, flags = {}) => {
   let res = `${header}`

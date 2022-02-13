@@ -6,12 +6,20 @@ const _ = require('lodash')
 
 const merge = require('../util/merge')
 const file = require('../util/file')
+const { shared: sharedFlags, pipelineFlagsAreValid, buildPullUrl } = require('../util/flags')
 
 // eslint-disable-next-line generator-star-spacing, space-before-function-paren
 function* pull(context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
+
+  if (!pipelineFlagsAreValid(context.flags)){
+    cli.exit(1, 'If you specify either `pipeline-name` or `pipeline-stage`, specify them both.')
+  }
+
+  const pullUrl = yield buildPullUrl(context, heroku, cli)
+
   let config = yield {
-    remote: heroku.get(`/apps/${context.app}/config-vars`),
+    remote: heroku.get(pullUrl),
     local: file.read(fname, context.flags)
   }
   let res = merge(config.remote, config.local, context.flags)
@@ -33,7 +41,7 @@ function* pull(context, heroku) {
 
 module.exports = (() => {
   let flags = [
-    ...require('../util/flags'),
+    ...sharedFlags,
     {
       name: 'unquoted',
       char: 'u',
@@ -47,9 +55,12 @@ module.exports = (() => {
     description: 'pull env variables from heroku',
     help:
       'Write remote config vars into file FILE, favoring existing local configs in case of collision',
-    needsApp: true,
+    // doesn't seem to be documented anywhere, but this works
+    // no clue where it plugs into the CLI now, but I found it here:
+    // https://github.com/heroku/cli-engine/blob/5004250bd03c0b38e6e33e69ee962a3b50274b20/src/plugins/legacy.ts#L169
+    wantsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(pull)),
-    flags: flags
+    flags
   }
 })()

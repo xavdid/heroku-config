@@ -5,11 +5,12 @@ const co = require('co')
 const merge = require('../util/merge')
 const file = require('../util/file')
 const _ = require('lodash')
+const { shared: sharedFlags, pipelineFlagsAreValid, buildPullUrl } = require('../util/flags')
 
 // eslint-disable-next-line generator-star-spacing, space-before-function-paren
-function* patchConfig(context, heroku, payload, success) {
+function* patchConfig(context, heroku, payload, success, url) {
   try {
-    yield heroku.patch(`/apps/${context.app}/config-vars`, { body: payload })
+    yield heroku.patch(url, { body: payload })
     if (!context.flags.quiet) {
       cli.log(success)
     }
@@ -21,8 +22,15 @@ function* patchConfig(context, heroku, payload, success) {
 // eslint-disable-next-line generator-star-spacing, space-before-function-paren
 function* push(context, heroku) {
   let fname = context.flags.file // this gets defaulted in read
+
+  if (!pipelineFlagsAreValid(context.flags)){
+    cli.exit(1, 'If you specify either `pipeline-name` or `pipeline-stage`, specify them both.')
+  }
+
+  const pullUrl = yield buildPullUrl(context, heroku, cli)
+
   let config = yield {
-    remote: heroku.get(`/apps/${context.app}/config-vars`),
+    remote: heroku.get(pullUrl),
     local: file.read(fname, context.flags)
   }
 
@@ -31,7 +39,8 @@ function* push(context, heroku) {
     context,
     heroku,
     res,
-    'Successfully wrote settings to Heroku!'
+    'Successfully wrote settings to Heroku!',
+    pullUrl
   )
 
   if (context.flags.clean) {
@@ -53,7 +62,7 @@ function* push(context, heroku) {
 
 module.exports = (() => {
   let flags = [
-    ...require('../util/flags'),
+    ...sharedFlags,
     {
       name: 'clean',
       char: 'c',
@@ -71,6 +80,6 @@ module.exports = (() => {
     needsApp: true,
     needsAuth: true,
     run: cli.command(co.wrap(push)),
-    flags: flags
+    flags
   }
 })()
