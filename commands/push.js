@@ -55,7 +55,8 @@ function* push(context, heroku) {
       context,
       heroku,
       nullKeys,
-      'Successfully deleted unused settings from Heroku!'
+      'Successfully deleted unused settings from Heroku!',
+      pullUrl
     )
   }
 }
