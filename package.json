@@ -1,6 +1,6 @@
 {
   "name": "heroku-config",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Push and pull environment variables from a Heroku instance",
   "main": "index.js",
   "scripts": {
