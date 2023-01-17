@@ -35,13 +35,28 @@ function* push(context, heroku) {
   }
 
   let res = merge(config.local, config.remote, context.flags)
-  yield patchConfig(
-    context,
-    heroku,
-    res,
-    'Successfully wrote settings to Heroku!',
-    pullUrl
-  )
+
+  // remove keys that havne't changed so we don't re-send them
+  // this fixes https://github.com/xavdid/heroku-config/issues/29
+  // by not writing protected values that it read
+  Object.keys(res).forEach((k) => {
+    if (res[k] === config.remote[k]){
+      // console.log('removing unchanged key', k)
+      delete res[k]
+    }
+  })
+
+  if (_.isEmpty(res)){
+    cli.log('No updated values to write; skipping')
+  } else {
+    yield patchConfig(
+      context,
+      heroku,
+      res,
+      'Successfully wrote settings to Heroku!',
+      pullUrl
+    )
+  }
 
   if (context.flags.clean) {
     // grab keys that weren't in local
