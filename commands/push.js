@@ -36,12 +36,11 @@ function* push(context, heroku) {
 
   let res = merge(config.local, config.remote, context.flags)
 
-  // remove keys that havne't changed so we don't re-send them
+  // remove keys that haven't changed so we don't re-send them
   // this fixes https://github.com/xavdid/heroku-config/issues/29
   // by not writing protected values that it read
   Object.keys(res).forEach((k) => {
     if (res[k] === config.remote[k]){
-      // console.log('removing unchanged key', k)
       delete res[k]
     }
   })
@@ -59,11 +58,16 @@ function* push(context, heroku) {
   }
 
   if (context.flags.clean) {
+    // these are usually owned by heroku, so we shouldn't try to delete them
+    const IGNORED_KEYS = new Set([
+      'DATABAE_URL',
+      'REDIS_URL'
+    ])
     // grab keys that weren't in local
     let keysToDelete = _.difference(
       Object.keys(config.remote),
       Object.keys(config.local)
-    )
+    ).filter(k => !IGNORED_KEYS.has(k))
     let nullKeys = _.fromPairs(keysToDelete.map(k => [k, null]))
 
     yield patchConfig(
