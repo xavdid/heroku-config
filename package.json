@@ -34,7 +34,7 @@
     "mock-stdin": "^0.3.0",
     "nock": "^9.0.0",
     "rewire": "^2.5.1",
-    "semver": "^5.5.0",
+    "semver": "^7.5.2",
     "standard": "^11.0.0"
   },
   "files": [
