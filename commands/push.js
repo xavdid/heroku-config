@@ -60,14 +60,14 @@ function* push(context, heroku) {
   if (context.flags.clean) {
     // these are usually owned by heroku, so we shouldn't try to delete them
     const IGNORED_KEYS = new Set([
-      'DATABAE_URL',
-      'REDIS_URL'
+      'DATABASE_URL',
+      'REDIS_URL',
     ])
     // grab keys that weren't in local
     let keysToDelete = _.difference(
       Object.keys(config.remote),
       Object.keys(config.local)
-    ).filter(k => !IGNORED_KEYS.has(k))
+    ).filter(k => !IGNORED_KEYS.has(k) || !k.startsWith('HEROKU_'))
     let nullKeys = _.fromPairs(keysToDelete.map(k => [k, null]))
 
     yield patchConfig(
