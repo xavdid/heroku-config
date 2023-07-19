@@ -67,7 +67,7 @@ function* push(context, heroku) {
     let keysToDelete = _.difference(
       Object.keys(config.remote),
       Object.keys(config.local)
-    ).filter(k => !IGNORED_KEYS.has(k) || !k.startsWith('HEROKU_'))
+    ).filter(k => !(IGNORED_KEYS.has(k) || k.startsWith('HEROKU_')))
     let nullKeys = _.fromPairs(keysToDelete.map(k => [k, null]))
 
     yield patchConfig(
