@@ -1,10 +1,16 @@
 # heroku-config
 
-[![npm](https://img.shields.io/npm/v/heroku-config.svg?maxAge=300)](https://www.npmjs.com/package/heroku-config) [![Travis](https://img.shields.io/travis/xavdid/heroku-config.svg?maxAge=300)](https://travis-ci.org/xavdid/heroku-config) [![David](https://img.shields.io/david/xavdid/heroku-config.svg?maxAge=300)](https://david-dm.org/xavdid/heroku-config)
+[![npm](https://img.shields.io/npm/v/heroku-config.svg?maxAge=300)](https://www.npmjs.com/package/heroku-config)
 
 Push and pull your [Heroku](https://www.heroku.com) configs to your local environment.
 
 Heavily inspired by [ddollar's version](https://github.com/ddollar/heroku-config), but using the new Heroku [cli](https://github.com/heroku/cli).
+
+## Project Status
+
+This project is in maintenance mode. As Heroku no longer offers a free plan, I no longer use it and won't spend time enriching their ecosystem. That said, this project is mostly feature-complete. It's old and creaky, but has worked consistently for years.
+
+I don't plan on adding any new features at this point, but will accept PRs for bugfixes if anything big comes up.
 
 ## :warning: Disclaimer :warning:
 
